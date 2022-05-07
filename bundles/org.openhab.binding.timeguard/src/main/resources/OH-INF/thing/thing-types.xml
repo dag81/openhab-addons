@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="timeguard"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+
+	<bridge-type id="bridge">
+		<label>TimeGuard Bridge</label>
+		<description>The TimeGuard bridge represents the TimeGuard cloud service.</description>
+
+		<properties>
+		</properties>
+
+		<config-description>
+			<parameter name="username" type="text">
+				<context>password</context>
+				<label>Username</label>
+				<description>Name of a registered TimeGuard user, that allows to access the mobile application.</description>
+			</parameter>
+			<parameter name="password" type="text">
+				<context>password</context>
+				<label>Password</label>
+				<description>Password for the registered TimeGuard username, that allows to access the mobile application.</description>
+			</parameter>
+			<parameter name="operatingModePollRate" type="integer" min="10" step="1" unit="s">
+				<label>Polling Interval For The Operation Mode</label>
+				<description>Seconds between fetching background updates about the operating mode.</description>
+				<default>5</default>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<thing-type id="device">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="bridge"/>
+		</supported-bridge-type-refs>
+
+		<label>TimeGuard WiFi Device</label>
+		<description>A TimeGuard WiFi device via TimeGuard's API</description>
+
+		<channels>
+			<channel id="workMode" typeId="deviceWorkMode"/>
+		</channels>
+
+		<properties>
+			<property name="Device Name"/>
+			<property name="Device Id"/>
+		</properties>
+		<representation-property>Device Id</representation-property>
+
+		<config-description>
+			<parameter name="deviceId" type="text">
+				<context>text</context>
+				<label>Device Id</label>
+				<description>The Device Id of the device as reported by the API.</description>
+			</parameter>
+			<parameter name="deviceName" type="text">
+				<context>text</context>
+				<label>Device Name</label>
+				<description>The name allocated to the device by the app. (Must be unique if used)</description>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<channel-type id="deviceWorkMode">
+		<item-type>String</item-type>
+		<label>Operation Mode</label>
+		<description>The operating mode of the timer</description>
+		<state readOnly="false">
+			<options>
+				<option value="0">Auto timed</option>
+				<option value="1">Always Off</option>
+				<option value="2">Always On</option>
+				<option value="3">Holiday</option>
+			</options>
+		</state>
+	</channel-type>
+
+</thing:thing-descriptions>

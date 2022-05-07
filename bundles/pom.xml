@@ -351,6 +351,7 @@
     <module>org.openhab.binding.tellstick</module>
     <module>org.openhab.binding.tesla</module>
     <module>org.openhab.binding.tibber</module>
+	<module>org.openhab.binding.timeguard</module>
     <module>org.openhab.binding.tivo</module>
     <module>org.openhab.binding.touchwand</module>
     <module>org.openhab.binding.tplinksmarthome</module>

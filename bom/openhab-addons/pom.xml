@@ -1586,6 +1586,11 @@
       <artifactId>org.openhab.binding.tibber</artifactId>
       <version>${project.version}</version>
     </dependency>
+	<dependency>
+      <groupId>org.openhab.addons.bundles</groupId>
+      <artifactId>org.openhab.binding.timeguard</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.openhab.addons.bundles</groupId>
       <artifactId>org.openhab.binding.tivo</artifactId>
