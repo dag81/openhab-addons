@@ -15,11 +15,10 @@ package org.openhab.binding.netatmo.internal.handler.channelhelper;
 import static org.openhab.binding.netatmo.internal.NetatmoBindingConstants.*;
 import static org.openhab.binding.netatmo.internal.utils.ChannelTypeUtils.*;
 
-import java.time.ZonedDateTime;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.netatmo.internal.api.data.ModuleType;
+import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.VideoStatus;
 import org.openhab.binding.netatmo.internal.api.dto.Event;
 import org.openhab.binding.netatmo.internal.api.dto.HomeEvent;
 import org.openhab.binding.netatmo.internal.api.dto.NAObject;
@@ -36,7 +35,6 @@ import org.openhab.core.types.UnDefType;
 @NonNullByDefault
 public class EventChannelHelper extends ChannelHelper {
     private boolean isLocal;
-    private @Nullable ZonedDateTime lastEventTime;
     private @Nullable String vpnUrl, localUrl;
     private ModuleType moduleType = ModuleType.UNKNOWN;
 
@@ -62,12 +60,9 @@ public class EventChannelHelper extends ChannelHelper {
     public void setNewData(@Nullable NAObject data) {
         if (data instanceof Event) {
             Event event = (Event) data;
-            ZonedDateTime localLast = lastEventTime;
-            ZonedDateTime eventTime = event.getTime();
-            if ((localLast != null && !eventTime.isAfter(localLast)) || !event.getEventType().appliesOn(moduleType)) {
-                return; // ignore incoming events if they are deprecated
+            if (!event.getEventType().appliesOn(moduleType)) {
+                return;
             }
-            lastEventTime = eventTime;
         }
         super.setNewData(data);
     }
@@ -98,17 +93,17 @@ public class EventChannelHelper extends ChannelHelper {
                 case CHANNEL_EVENT_VIDEO_STATUS:
                     return homeEvent.getVideoId() != null ? toStringType(homeEvent.getVideoStatus()) : UnDefType.NULL;
                 case CHANNEL_EVENT_VIDEO_LOCAL_URL:
-                    return getStreamURL(true, homeEvent.getVideoId());
+                    return getStreamURL(true, homeEvent.getVideoId(), homeEvent.getVideoStatus());
                 case CHANNEL_EVENT_VIDEO_VPN_URL:
-                    return getStreamURL(false, homeEvent.getVideoId());
+                    return getStreamURL(false, homeEvent.getVideoId(), homeEvent.getVideoStatus());
             }
         }
         return null;
     }
 
-    private State getStreamURL(boolean local, @Nullable String videoId) {
+    private State getStreamURL(boolean local, @Nullable String videoId, VideoStatus videoStatus) {
         String url = local ? localUrl : vpnUrl;
-        if ((local && !isLocal) || url == null || videoId == null) {
+        if ((local && !isLocal) || url == null || videoId == null || videoStatus != VideoStatus.AVAILABLE) {
             return UnDefType.NULL;
         }
         return toStringType("%s/vod/%s/index.m3u8", url, videoId);
