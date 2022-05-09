@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="hpA5500poe"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+
+	<bridge-type id="bridge">
+		<label>HP A5500 Telnet Bridge</label>
+		<description>The HP A5500 bridge represents the HP A5500 Telnet interface.</description>
+
+		<properties>
+		</properties>
+
+		<config-description>
+			<parameter name="ipAddress" type="text">
+				<label>IP Address</label>
+				<description>IP Address to telnet to the device.</description>
+			</parameter>
+			<parameter name="telnetPassword" type="text">
+				<context>password</context>
+				<label>Telnet Access Password</label>
+				<description>Password to access telnet session within the device.</description>
+			</parameter>
+			<parameter name="poeStatePollRate" type="integer" min="10" step="1" unit="s">
+				<label>Polling Interval For POE States</label>
+				<description>Seconds between fetching background updates about the switches POE ports states.</description>
+				<default>5</default>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<thing-type id="poePort">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="bridge"/>
+		</supported-bridge-type-refs>
+
+		<label>HP A5500 POE Switch Port</label>
+		<description>A HP A5500 POE Switches Port</description>
+
+		<channels>
+			<channel id="poePortPowerEnabled" typeId="poePowerEnabled"/>
+			<channel id="poePortOperatingState" typeId="poeOperatingState"/>
+			<channel id="poePortPowerPriority" typeId="poePowerPriority"/>
+			<channel id="poePortIEEEClass" typeId="poeIEEEClass"/>
+			<channel id="poePortDetectionStatus" typeId="poeDetectionStatus"/>
+			<channel id="poePortPowerMode" typeId="poePowerMode"/>
+			<channel id="poePortCurrentPower" typeId="poeCurrentPower"/>
+			<channel id="poePortAveragePower" typeId="poeAveragePower"/>
+			<channel id="poePortPeakPower" typeId="poePeakPower"/>
+			<channel id="poePortMaxPower" typeId="poeMaxPower"/>
+			<channel id="poePortVoltage" typeId="poeVoltage"/>
+			<channel id="poePortCurrent" typeId="poeCurrent"/>
+		</channels>
+
+		<config-description>
+			<parameter name="portNumber" type="integer">
+				<context>text</context>
+				<label>Port Number</label>
+				<description>The Port Number</description>
+			</parameter>
+		</config-description>
+
+	</thing-type>
+
+	<channel-type id="poePowerEnabled">
+		<item-type>Switch</item-type>
+		<label>Port POE Enabled</label>
+		<description>Whether the port has POE power enabled</description>
+		<state readOnly="false"/>
+	</channel-type>
+
+	<channel-type id="poeOperatingState">
+		<item-type>Switch</item-type>
+		<label>Port Operating State</label>
+		<description>The ports operating state</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poePowerPriority">
+		<item-type>String</item-type>
+		<label>Port Power Priority</label>
+		<description>The power priority of the port</description>
+		<state readOnly="true">
+			<options>
+				<option value="low">Low</option>
+				<option value="high">High</option>
+				<option value="critical">Critical</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="poeIEEEClass">
+		<item-type>Number</item-type>
+		<label>Port IEEE Class</label>
+		<description>The IEEE Class of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poeDetectionStatus">
+		<item-type>String</item-type>
+		<label>Port Detection Status</label>
+		<description>The port detection status</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+
+
+	<channel-type id="poePowerMode">
+		<item-type>String</item-type>
+		<label>Port Power Mode</label>
+		<description>The port power mode</description>
+		<state readOnly="true" pattern="%.3f %unit%"/>
+	</channel-type>
+
+	<channel-type id="poeCurrentPower">
+		<item-type>Number:Power</item-type>
+		<label>Port Current Power</label>
+		<description>The current power of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poeAveragePower">
+		<item-type>Number:Power</item-type>
+		<label>Port Average Power</label>
+		<description>The average power of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poePeakPower">
+		<item-type>Number:Power</item-type>
+		<label>Port Peak Power</label>
+		<description>The peak power of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poeMaxPower">
+		<item-type>Number:Power</item-type>
+		<label>Port Max Power</label>
+		<description>The max power of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poeVoltage">
+		<item-type>Number:ElectricPotential</item-type>
+		<label>Port Voltage</label>
+		<description>The voltage of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="poeCurrent">
+		<item-type>Number:ElectricCurrent</item-type>
+		<label>Port Current</label>
+		<description>The current of the port</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+</thing:thing-descriptions>
