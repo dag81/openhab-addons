@@ -15,21 +15,19 @@ package org.openhab.binding.hpA5500poe.internal.dto.requests;
 import java.util.regex.Pattern;
 
 /**
- * The {@link SerialInterfaceLogin} is the Java class as a DTO to hold login credentials for the Vesync
+ * The {@link SystemView} is the Java class as a DTO to hold login credentials for the Vesync
  * API.
  *
  * @author David Goodyear - Initial contribution
  */
-public class SerialInterfaceLogin extends TelnetRequest {
+public class SystemView extends TelnetRequest {
 
-    public SerialInterfaceLogin() {
+    public SystemView() {
         super();
 
-        // This pattern must be matched before the command can be executed
-        this.waitForMatchPattern = Pattern.compile(".*[P][a][s][s][w][o][r][d][:]$", Pattern.DOTALL);
+        this.commandToSend = "system-view";
 
         // If not null this pattern must be matched before the command can be considered as done
-        this.completeMatchPattern = Pattern.compile(".*([<][0-9a-zA-Z_]+[>]$)", Pattern.DOTALL);
-        this.errorMatchPattern = Pattern.compile(".*Username or password is invalid.$", Pattern.DOTALL);
+        this.completeMatchPattern = Pattern.compile(".*([\\[][0-9a-zA-Z_]+[\\]]$)", Pattern.DOTALL);
     }
 }

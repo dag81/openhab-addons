@@ -94,7 +94,7 @@
 		<item-type>Number</item-type>
 		<label>Port IEEE Class</label>
 		<description>The IEEE Class of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.0f"/>
 	</channel-type>
 
 	<channel-type id="poeDetectionStatus">
@@ -117,42 +117,42 @@
 		<item-type>Number:Power</item-type>
 		<label>Port Current Power</label>
 		<description>The current power of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.3f %unit%"/>
 	</channel-type>
 
 	<channel-type id="poeAveragePower">
 		<item-type>Number:Power</item-type>
 		<label>Port Average Power</label>
 		<description>The average power of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.3f %unit%"/>
 	</channel-type>
 
 	<channel-type id="poePeakPower">
 		<item-type>Number:Power</item-type>
 		<label>Port Peak Power</label>
 		<description>The peak power of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.3f %unit%"/>
 	</channel-type>
 
 	<channel-type id="poeMaxPower">
 		<item-type>Number:Power</item-type>
 		<label>Port Max Power</label>
 		<description>The max power of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.3f %unit%"/>
 	</channel-type>
 
 	<channel-type id="poeVoltage">
 		<item-type>Number:ElectricPotential</item-type>
 		<label>Port Voltage</label>
 		<description>The voltage of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.2f %unit%"/>
 	</channel-type>
 
 	<channel-type id="poeCurrent">
 		<item-type>Number:ElectricCurrent</item-type>
 		<label>Port Current</label>
 		<description>The current of the port</description>
-		<state readOnly="true"/>
+		<state readOnly="true" pattern="%.3f %unit%"/>
 	</channel-type>
 
 </thing:thing-descriptions>

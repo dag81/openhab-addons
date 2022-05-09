@@ -19,7 +19,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequest;
+import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequestSequence;
 import org.openhab.binding.hpA5500poe.internal.dto.responses.TelnetResponse;
 
 /**
@@ -59,6 +61,18 @@ public class TelnetConnection {
         clientSocket = new Socket(host, 23);
         out = new PrintWriter(clientSocket.getOutputStream(), false);
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    }
+
+    public synchronized @Nullable TelnetResponse sendRequest(final TelnetRequestSequence requestSequence)
+            throws IOException {
+        TelnetResponse lastResponse = null;
+        for (TelnetRequest req : requestSequence.SequencedCommands) {
+            lastResponse = sendRequest(req);
+            if (!lastResponse.nonErrorResponse) {
+                throw new IOException("Sequence failed! - reset telnet session");
+            }
+        }
+        return lastResponse;
     }
 
     public synchronized TelnetResponse sendRequest(final TelnetRequest request) throws IOException {

@@ -20,11 +20,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.http.HttpMethod;
-import org.openhab.binding.hpA5500poe.internal.HPA5500BindingConstants;
 import org.openhab.binding.hpA5500poe.internal.HPA5500DevicePoePortConfiguration;
 import org.openhab.binding.hpA5500poe.internal.dto.requests.RequestPortPoeStatus;
 import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequest;
+import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequestSequence;
 import org.openhab.binding.hpA5500poe.internal.dto.responses.TelnetResponse;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
@@ -55,6 +54,8 @@ public class HPA5500DevicePoePortHandler extends BaseThingHandler {
     private final Logger logger = LoggerFactory.getLogger(HPA5500DevicePoePortHandler.class);
 
     private @Nullable RequestPortPoeStatus reqStatusMsg = null;
+
+    private int portNumber;
 
     @Override
     public void channelLinked(ChannelUID channelUID) {
@@ -90,6 +91,7 @@ public class HPA5500DevicePoePortHandler extends BaseThingHandler {
         } else {
             reqStatusMsg = new RequestPortPoeStatus(config.portNumber);
             updateStatus(ThingStatus.ONLINE);
+            portNumber = config.portNumber;
             scheduler.schedule(this::pollForUpdate, 3, TimeUnit.SECONDS);
 
             HPA5500BridgeHandler bridgeRef = (HPA5500BridgeHandler) getBridgeHandler();
@@ -108,7 +110,32 @@ public class HPA5500DevicePoePortHandler extends BaseThingHandler {
     }
 
     @Override
-    public void handleCommand(ChannelUID channelUID, Command command) {
+    public void handleCommand(final ChannelUID channelUID, final Command command) {
+        if (portNumber < 1 || portNumber > 48)
+            throw new RuntimeException("Invalid port number - cannot dispatch command");
+        scheduler.submit(() -> {
+            if (command instanceof OnOffType) {
+                switch (channelUID.getId()) {
+                    case DEVICE_CHANNEL_POE_PORT_ENABLED:
+                        TelnetRequestSequence cmdSequence = TelnetRequestSequence.createPoePortSetEnable(portNumber,
+                                command.equals(OnOffType.ON));
+                        HPA5500BridgeHandler bridgeRef = (HPA5500BridgeHandler) getBridgeHandler();
+                        if (bridgeRef == null || ThingStatus.OFFLINE.equals(bridgeRef.getThing().getStatus())) {
+                            logger.warn("Command blocked as device / bridge is offline");
+                            return;
+                        }
+
+                        TelnetResponse tr = bridgeRef.sendRequest(cmdSequence);
+                        if (tr != null && tr.nonErrorResponse) {
+                            logger.debug("Performing read-back");
+                            // The devices need's at least 2 seconds to process the command
+                            scheduler.schedule(this::pollForUpdate, 2, TimeUnit.SECONDS);
+                        }
+
+                        break;
+                }
+            }
+        });
     }
 
     public void pollForUpdate() {
@@ -122,19 +149,16 @@ public class HPA5500DevicePoePortHandler extends BaseThingHandler {
         HPA5500BridgeHandler bridgeRef = (HPA5500BridgeHandler) getBridgeHandler();
 
         if (bridgeRef == null || ThingStatus.OFFLINE.equals(bridgeRef.getThing().getStatus())) {
-            logger.error("Poll blocked as device / bridge is offline");
+            logger.warn("Poll blocked as device / bridge is offline");
             return;
         }
 
-        logger.error("Polling for update now");
-
-        TelnetResponse response = ((HPA5500BridgeHandler) getBridgeHandler()).processRequest(req);
-        if (response != null) {
-            logger.error("Got response - {}", response.response);
-            logger.error("Got response payload - '{}'", response.getResponsePayload());
-        }
+        TelnetResponse response = ((HPA5500BridgeHandler) getBridgeHandler()).sendRequest(req);
+        if (response == null)
+            return;
 
         final String responseRaw = response.getResponsePayload();
+
         final String[] responseLines = responseRaw.split("\r\n");
         final HashMap<String, String> kpData = new HashMap<>();
         for (String responseLine : responseLines) {
@@ -144,79 +168,31 @@ public class HPA5500DevicePoePortHandler extends BaseThingHandler {
 
         updateState(DEVICE_CHANNEL_POE_PORT_ENABLED,
                 OnOffType.from(kpData.get("Port Power Enabled").equals("enabled")));
-        updateState(DEVICE_CHANNEL_POE_PORT_OP_STATE, OnOffType.from(kpData.get("Port Operating Status").equals("on")));
         updateState(DEVICE_CHANNEL_POE_PORT_POWER_PRIORITY, new StringType(kpData.get("Port Power Priority")));
-        String IeeeClassStr = kpData.get("Port IEEE Class");
-        if (IeeeClassStr != null) {
-            updateState(DEVICE_CHANNEL_POE_PORT_IEEE_CLASS, new DecimalType(Integer.valueOf(IeeeClassStr).intValue()));
-        } else {
-            updateState(DEVICE_CHANNEL_POE_PORT_IEEE_CLASS, new DecimalType(-1));
-        }
-
+        updateState(DEVICE_CHANNEL_POE_PORT_OP_STATE, OnOffType.from(kpData.get("Port Operating Status").equals("on")));
+        updateState(DEVICE_CHANNEL_POE_PORT_IEEE_CLASS,
+                new DecimalType((int) extractValue(kpData, "Port IEEE Class", 0)));
         updateState(DEVICE_CHANNEL_POE_PORT_DETECTION_STATUS, new StringType(kpData.get("Port Detection Status")));
         updateState(DEVICE_CHANNEL_POE_PORT_POWER_MODE, new StringType(kpData.get("Port Power Mode")));
-
-        if (kpData.containsKey("Port Current Power")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Current Power").split(" ")[0];
-            if (currentVal != null) {
-                value = Integer.valueOf(currentVal).intValue() / 1000d;
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_CURRENT_POWER, new QuantityType<>(value, Units.WATT));
-        }
-
-        if (kpData.containsKey("Port Average Power")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Average Power").split(" ")[0];
-            if (currentVal != null) {
-                value = Integer.valueOf(currentVal).intValue() / 1000d;
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_AVERAGE_POWER, new QuantityType<>(value, Units.WATT));
-        }
-
-        if (kpData.containsKey("Port Voltage")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Voltage").split(" ")[0];
-            if (currentVal != null) {
-                value = Double.valueOf(currentVal).doubleValue();
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_VOLTAGE, new QuantityType<>(value, Units.VOLT));
-        }
-
-        if (kpData.containsKey("Port Peak Power")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Peak Power").split(" ")[0];
-            if (currentVal != null) {
-                value = Integer.valueOf(currentVal).intValue() / 1000d;
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_PEAK_POWER, new QuantityType<>(value, Units.WATT));
-        }
-
-        if (kpData.containsKey("Port Max Power")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Max Power").split(" ")[0];
-            if (currentVal != null) {
-                value = Integer.valueOf(currentVal).intValue() / 1000d;
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_MAX_POWER, new QuantityType<>(value, Units.WATT));
-        }
-
-        if (kpData.containsKey("Port Current")) {
-            double value = 0;
-            final String currentVal = kpData.get("Port Current").split(" ")[0];
-            if (currentVal != null) {
-                value = Integer.valueOf(currentVal).intValue() / 1000d;
-            }
-            updateState(DEVICE_CHANNEL_POE_PORT_CURRENT, new QuantityType<>(value, Units.AMPERE));
-        }
+        updateState(DEVICE_CHANNEL_POE_PORT_CURRENT_POWER,
+                new QuantityType<>(extractValue(kpData, "Port Current Power", 0) / 1000d, Units.WATT));
+        updateState(DEVICE_CHANNEL_POE_PORT_AVERAGE_POWER,
+                new QuantityType<>(extractValue(kpData, "Port Average Power", 0) / 1000d, Units.WATT));
+        updateState(DEVICE_CHANNEL_POE_PORT_PEAK_POWER,
+                new QuantityType<>(extractValue(kpData, "Port Peak Power", 0) / 1000d, Units.WATT));
+        updateState(DEVICE_CHANNEL_POE_PORT_MAX_POWER,
+                new QuantityType<>(extractValue(kpData, "Port Max Power", 0) / 1000d, Units.WATT));
+        updateState(DEVICE_CHANNEL_POE_PORT_CURRENT,
+                new QuantityType<>(extractValue(kpData, "Port Current", 0) / 1000d, Units.AMPERE));
+        updateState(DEVICE_CHANNEL_POE_PORT_VOLTAGE,
+                new QuantityType<>(extractValue(kpData, "Port Voltage", 0), Units.VOLT));
     }
 
-    public final String sendCommand(final HttpMethod method, final String url) {
-
-        if (ThingStatus.OFFLINE.equals(this.thing.getStatus())) {
-            logger.debug("Command blocked as device is offline");
-            return HPA5500BindingConstants.EMPTY_STRING;
+    private double extractValue(final HashMap<String, String> kpData, final String key, double defaultValue) {
+        final String currentVal = kpData.get(key).split(" ")[0];
+        if (currentVal != null) {
+            defaultValue = Double.valueOf(currentVal).doubleValue();
         }
-        return "";
+        return defaultValue;
     }
 }

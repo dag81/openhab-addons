@@ -23,12 +23,12 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.hpA5500poe.internal.HPA5500BridgeConfiguration;
 import org.openhab.binding.hpA5500poe.internal.dto.requests.SerialInterfaceLogin;
 import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequest;
+import org.openhab.binding.hpA5500poe.internal.dto.requests.TelnetRequestSequence;
 import org.openhab.binding.hpA5500poe.internal.dto.responses.TelnetResponse;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
-import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
@@ -47,12 +47,9 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
     private final Logger logger = LoggerFactory.getLogger(HPA5500BridgeHandler.class);
 
     public @Nullable ScheduledFuture<?> backgroundPoeStatusPollingJob;
+    public @Nullable ScheduledFuture<?> backgroundConnectionRepair;
 
-    public ThingUID getUID() {
-        return thing.getUID();
-    }
-
-    TelnetConnection telnetLink = new TelnetConnection();
+    private TelnetConnection telnetLink = new TelnetConnection();
 
     public HPA5500BridgeHandler(Bridge bridge) {
         super(bridge);
@@ -63,6 +60,17 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
     @Override
     public void initialize() {
         scheduler.submit(() -> startTelnetSession());
+        if (backgroundConnectionRepair != null) {
+            backgroundConnectionRepair.cancel(false);
+            backgroundConnectionRepair = null;
+        }
+        backgroundConnectionRepair = scheduler.scheduleWithFixedDelay(this::repairLink, 2, 1, TimeUnit.MINUTES);
+    }
+
+    private void repairLink() {
+        if (getThing().getStatus().equals(ThingStatus.OFFLINE)) {
+            scheduler.submit(() -> startTelnetSession());
+        }
     }
 
     protected void registerPoePort(HPA5500DevicePoePortHandler poePortRepresentation) {
@@ -77,12 +85,43 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
         }
     }
 
+    public @Nullable TelnetResponse sendRequest(TelnetRequest tr) {
+        final TelnetRequestSequence trs = new TelnetRequestSequence();
+        trs.SequencedCommands.add(tr);
+        return sendRequest(trs);
+    }
+
+    public @Nullable TelnetResponse sendRequest(TelnetRequestSequence trs) {
+        if (getThing().getStatus().equals(ThingStatus.OFFLINE)) {
+            logger.warn("Not sending command bridge is offline");
+            return null;
+        }
+        boolean success = true;
+        TelnetResponse resp = null;
+        try {
+            logger.debug("Sending request");
+            resp = telnetLink.sendRequest(trs);
+            logger.debug("Sent request");
+            if (resp == null || !resp.nonErrorResponse) {
+                success = false;
+            }
+        } catch (IOException ioe) {
+            success = false;
+        }
+        if (!success) {
+            logger.debug("Communication issue marking bridge as offline");
+            updateStatus(ThingStatus.OFFLINE);
+        }
+
+        return resp;
+    }
+
     private void pollPoePorts() {
         try {
-            logger.error("Running POE Ports poll for {} ports ", poePortsToPoll.size());
+            logger.debug("Running POE Ports poll for {} ports ", poePortsToPoll.size());
             poePortsToPoll.forEach(x -> x.pollForUpdate());
         } catch (Throwable t) {
-            logger.error("Error while polling", t);
+            logger.warn("Error while polling", t);
         }
     }
 
@@ -90,6 +129,7 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
         final HPA5500BridgeConfiguration config = getConfigAs(HPA5500BridgeConfiguration.class);
         if (backgroundPoeStatusPollingJob != null) {
             backgroundPoeStatusPollingJob.cancel(false);
+            backgroundPoeStatusPollingJob = null;
         }
         if (enable) {
             backgroundPoeStatusPollingJob = scheduler.scheduleWithFixedDelay(this::pollPoePorts, 2,
@@ -117,23 +157,17 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
         }
     }
 
-    public @Nullable TelnetResponse processRequest(TelnetRequest request) {
-        try {
-            return telnetLink.sendRequest(request);
-        } catch (IOException ioe) {
-            startTelnetSession();
-            try {
-                return telnetLink.sendRequest(request);
-            } catch (IOException ioe2) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR, "Lost communications");
-            }
-        }
-        return null;
-    }
-
     @Override
     public void dispose() {
         telnetLink.disconnect();
+        if (backgroundConnectionRepair != null) {
+            backgroundConnectionRepair.cancel(true);
+            backgroundConnectionRepair = null;
+        }
+        if (backgroundPoeStatusPollingJob != null) {
+            backgroundPoeStatusPollingJob.cancel(true);
+            backgroundPoeStatusPollingJob = null;
+        }
     }
 
     @Override
@@ -144,30 +178,4 @@ public class HPA5500BridgeHandler extends BaseBridgeHandler {
     public Collection<Class<? extends ThingHandlerService>> getServices() {
         return super.getServices();
     }
-
-    /*
-     * protected void setBackgroundScanInterval(final int seconds) {
-     * synchronized (scanConfigLock) {
-     * ScheduledFuture<?> job = backgroundDiscoveryPollingJob;
-     * if (backgroundScanTime != seconds) {
-     * if (seconds > 0) {
-     * logger.trace("Scheduling background scanning for new devices / base information every {} seconds",
-     * seconds);
-     * } else {
-     * logger.trace("Disabling background scanning for new devices / base information");
-     * }
-     * // Cancel the current scan's and re-schedule as required
-     * if (job != null && !job.isCancelled()) {
-     * job.cancel(true);
-     * backgroundDiscoveryPollingJob = null;
-     * }
-     * if (seconds > 0) {
-     * backgroundDiscoveryPollingJob = scheduler.scheduleWithFixedDelay(
-     * this::runDeviceScanSequenceNoAuthErrors, seconds, seconds, TimeUnit.SECONDS);
-     * }
-     * backgroundScanTime = seconds;
-     * }
-     * }
-     * }
-     */
 }

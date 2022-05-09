@@ -21,5 +21,15 @@ import java.util.ArrayList;
  * @author David Goodyear - Initial contribution
  */
 public class TelnetRequestSequence {
-    ArrayList<TelnetRequest> SequencedCommands = new ArrayList<>();
+    public ArrayList<TelnetRequest> SequencedCommands = new ArrayList<>();
+
+    public static TelnetRequestSequence createPoePortSetEnable(final int portNumber, final boolean state) {
+        final TelnetRequestSequence newSequence = new TelnetRequestSequence();
+        newSequence.SequencedCommands.add(new SystemView());
+        newSequence.SequencedCommands.add(new SwitchToInterface(portNumber));
+        newSequence.SequencedCommands.add(new EnablePoePort(state));
+        newSequence.SequencedCommands.add(new QuitCurrentTelnetLevel());
+        newSequence.SequencedCommands.add(new QuitCurrentTelnetLevel());
+        return newSequence;
+    }
 }

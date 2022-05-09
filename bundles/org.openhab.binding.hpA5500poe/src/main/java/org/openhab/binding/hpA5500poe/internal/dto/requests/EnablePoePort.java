@@ -15,21 +15,21 @@ package org.openhab.binding.hpA5500poe.internal.dto.requests;
 import java.util.regex.Pattern;
 
 /**
- * The {@link SerialInterfaceLogin} is the Java class as a DTO to hold login credentials for the Vesync
+ * The {@link EnablePoePort} is the Java class as a DTO to hold login credentials for the Vesync
  * API.
  *
  * @author David Goodyear - Initial contribution
  */
-public class SerialInterfaceLogin extends TelnetRequest {
+public class EnablePoePort extends TelnetRequest {
 
-    public SerialInterfaceLogin() {
+    public EnablePoePort(boolean enablePort) {
         super();
 
-        // This pattern must be matched before the command can be executed
-        this.waitForMatchPattern = Pattern.compile(".*[P][a][s][s][w][o][r][d][:]$", Pattern.DOTALL);
+        this.commandToSend = (!enablePort ? "undo " : "") + "poe enable";
 
         // If not null this pattern must be matched before the command can be considered as done
-        this.completeMatchPattern = Pattern.compile(".*([<][0-9a-zA-Z_]+[>]$)", Pattern.DOTALL);
-        this.errorMatchPattern = Pattern.compile(".*Username or password is invalid.$", Pattern.DOTALL);
+        this.completeMatchPattern = Pattern.compile(
+                ".*([\\[][0-9a-zA-Z_]+[-][G][i][g][a][b][i][t][E][t][h][e][r][n][e][t][1][/][0][/]([0-9]{1,2})[\\]]$)",
+                Pattern.DOTALL);
     }
 }
