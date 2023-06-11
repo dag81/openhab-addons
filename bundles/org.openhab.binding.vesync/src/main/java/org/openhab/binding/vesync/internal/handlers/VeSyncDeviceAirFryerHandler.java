@@ -38,8 +38,6 @@ public class VeSyncDeviceAirFryerHandler extends VeSyncBaseDeviceHandler {
 
     public static final String DEV_TYPE_FAMILY_AIR_FRYER = "CS-AF";
 
-    public static final int DEFAULT_AIR_PURIFIER_POLL_RATE = 120;
-
     public static final String DEV_FAMILY_CORSORI_3758L = "Corsori 3758L";
 
     /**
