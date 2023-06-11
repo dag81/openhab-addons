@@ -174,6 +174,15 @@ public class VeSyncBridgeHandler extends BaseBridgeHandler implements VeSyncClie
                         .equals(VeSyncBaseDeviceHandler.UNKNOWN));
     }
 
+    public java.util.stream.Stream<@NotNull VeSyncManagedDeviceBase> getAirFryersMetadata() {
+        return api.getMacLookupMap().values().stream()
+                .filter(x -> !VeSyncBaseDeviceHandler
+                        .getDeviceFamilyMetadata(x.getDeviceType(),
+                                VeSyncDeviceAirFryerHandler.DEV_TYPE_FAMILY_AIR_FRYER,
+                                VeSyncDeviceAirFryerHandler.SUPPORTED_MODEL_FAMILIES)
+                        .equals(VeSyncBaseDeviceHandler.UNKNOWN));
+    }
+
     protected void updateThings() {
         final VeSyncBridgeConfiguration config = getConfigAs(VeSyncBridgeConfiguration.class);
         getThing().getThings().forEach((th) -> updateThing(config, th.getHandler()));

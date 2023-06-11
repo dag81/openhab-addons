@@ -23,6 +23,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.vesync.internal.handlers.VeSyncBaseDeviceHandler;
 import org.openhab.binding.vesync.internal.handlers.VeSyncBridgeHandler;
+import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirFryerHandler;
 import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirHumidifierHandler;
 import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirPurifierHandler;
 import org.openhab.core.config.discovery.AbstractDiscoveryService;
@@ -147,6 +148,24 @@ public class VeSyncDiscoveryService extends AbstractDiscoveryService
             properties.put(DEVICE_PROP_CONFIG_DEVICE_MAC, apMeta.getMacId());
             properties.put(DEVICE_PROP_CONFIG_DEVICE_NAME, apMeta.getDeviceName());
             return DiscoveryResultBuilder.create(new ThingUID(THING_TYPE_AIR_HUMIDIFIER, bridgeUID, deviceUUID))
+                    .withLabel(apMeta.getDeviceName()).withBridge(bridgeUID).withProperties(properties)
+                    .withRepresentationProperty(DEVICE_PROP_DEVICE_MAC_ID).build();
+        }).forEach(this::thingDiscovered);
+
+        bridgeHandler.getAirFryersMetadata().map(apMeta -> {
+            final Map<String, Object> properties = new HashMap<>(6);
+            final String deviceUUID = apMeta.getUuid();
+            properties.put(DEVICE_PROP_DEVICE_NAME, apMeta.getDeviceName());
+            properties.put(DEVICE_PROP_DEVICE_TYPE, apMeta.getDeviceType());
+            properties.put(DEVICE_PROP_DEVICE_FAMILY,
+                    VeSyncBaseDeviceHandler.getDeviceFamilyMetadata(apMeta.getDeviceType(),
+                            VeSyncDeviceAirFryerHandler.DEV_TYPE_FAMILY_AIR_FRYER,
+                            VeSyncDeviceAirFryerHandler.SUPPORTED_MODEL_FAMILIES));
+            properties.put(DEVICE_PROP_DEVICE_MAC_ID, apMeta.getMacId());
+            properties.put(DEVICE_PROP_DEVICE_UUID, deviceUUID);
+            properties.put(DEVICE_PROP_CONFIG_DEVICE_MAC, apMeta.getMacId());
+            properties.put(DEVICE_PROP_CONFIG_DEVICE_NAME, apMeta.getDeviceName());
+            return DiscoveryResultBuilder.create(new ThingUID(THING_TYPE_AIR_FRYER, bridgeUID, deviceUUID))
                     .withLabel(apMeta.getDeviceName()).withBridge(bridgeUID).withProperties(properties)
                     .withRepresentationProperty(DEVICE_PROP_DEVICE_MAC_ID).build();
         }).forEach(this::thingDiscovered);

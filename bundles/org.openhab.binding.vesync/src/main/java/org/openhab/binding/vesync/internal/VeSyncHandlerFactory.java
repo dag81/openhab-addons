@@ -21,6 +21,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
 import org.openhab.binding.vesync.internal.api.IHttpClientProvider;
 import org.openhab.binding.vesync.internal.handlers.VeSyncBridgeHandler;
+import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirFryerHandler;
 import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirHumidifierHandler;
 import org.openhab.binding.vesync.internal.handlers.VeSyncDeviceAirPurifierHandler;
 import org.openhab.core.io.net.http.HttpClientFactory;
@@ -61,6 +62,8 @@ public class VeSyncHandlerFactory extends BaseThingHandlerFactory implements IHt
             return new VeSyncDeviceAirPurifierHandler(thing);
         } else if (VeSyncDeviceAirHumidifierHandler.SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new VeSyncDeviceAirHumidifierHandler(thing);
+        } else if (VeSyncDeviceAirFryerHandler.SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID)) {
+            return new VeSyncDeviceAirFryerHandler(thing);
         } else if (THING_TYPE_BRIDGE.equals(thingTypeUID)) {
             return new VeSyncBridgeHandler((Bridge) thing, this);
         }
