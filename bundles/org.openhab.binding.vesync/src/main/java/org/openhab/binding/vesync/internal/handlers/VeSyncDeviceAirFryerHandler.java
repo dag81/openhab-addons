@@ -12,33 +12,20 @@
  */
 package org.openhab.binding.vesync.internal.handlers;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.vesync.internal.VeSyncBridgeConfiguration;
-import org.openhab.binding.vesync.internal.VeSyncConstants;
-import org.openhab.binding.vesync.internal.dto.requests.VeSyncRequestManagedDeviceBypassV2;
-import org.openhab.binding.vesync.internal.dto.responses.VeSyncV2BypassHumidifierStatus;
-import org.openhab.core.cache.ExpiringCache;
-import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.QuantityType;
-import org.openhab.core.library.types.StringType;
-import org.openhab.core.library.unit.Units;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingTypeUID;
-import org.openhab.core.types.Command;
-import org.openhab.core.types.RefreshType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.openhab.binding.vesync.internal.VeSyncConstants.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.openhab.binding.vesync.internal.VeSyncConstants.*;
-import static org.openhab.binding.vesync.internal.dto.requests.VeSyncProtocolConstants.*;
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.vesync.internal.VeSyncBridgeConfiguration;
+import org.openhab.core.cache.ExpiringCache;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.types.Command;
 
 /**
  * The {@link VeSyncDeviceAirFryerHandler} is responsible for handling commands, which are
@@ -63,11 +50,7 @@ public class VeSyncDeviceAirFryerHandler extends VeSyncBaseDeviceHandler {
 
     public static final List<VeSyncDeviceMetadata> SUPPORTED_MODEL_FAMILIES = Arrays.asList(COSORI3758L);
 
-    private final Logger logger = LoggerFactory.getLogger(VeSyncDeviceAirFryerHandler.class);
-
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_AIR_FRYER);
-
-    private final Object pollLock = new Object();
 
     public VeSyncDeviceAirFryerHandler(Thing thing) {
         super(thing);
@@ -96,7 +79,7 @@ public class VeSyncDeviceAirFryerHandler extends VeSyncBaseDeviceHandler {
 
     @Override
     public String getDeviceFamilyProtocolPrefix() {
-        return DEV_TYPE_FAMILY_AIR_HUMIDIFIER;
+        return DEV_TYPE_FAMILY_AIR_FRYER;
     }
 
     @Override
