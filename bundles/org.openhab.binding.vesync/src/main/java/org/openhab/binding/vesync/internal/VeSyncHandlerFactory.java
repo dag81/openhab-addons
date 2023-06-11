@@ -45,7 +45,7 @@ import org.osgi.service.component.annotations.Reference;
 public class VeSyncHandlerFactory extends BaseThingHandlerFactory implements IHttpClientProvider {
 
     private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_BRIDGE,
-            THING_TYPE_AIR_PURIFIER, THING_TYPE_AIR_HUMIDIFIER);
+            THING_TYPE_AIR_PURIFIER, THING_TYPE_AIR_HUMIDIFIER, THING_TYPE_AIR_FRYER);
 
     private @Nullable HttpClient httpClientRef = null;
 
