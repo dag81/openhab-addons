@@ -56,6 +56,8 @@ public interface VeSyncProtocolConstants {
     String PROTOCOL = "https";
     String HOST_ENDPOINT = PROTOCOL + "://smartapi.vesync.com/cloud";
     String V1_LOGIN_ENDPOINT = HOST_ENDPOINT + "/v1/user/login";
-    String V1_MANAGED_DEVICES_ENDPOINT = HOST_ENDPOINT + "/v1/deviceManaged/devices";
+    String V1_MANAGED_ENDPOINT = HOST_ENDPOINT + "/v1/deviceManaged";
+    String V1_BYPASS_ENDPOINT = V1_MANAGED_ENDPOINT + "/bypass";
+    String V1_MANAGED_DEVICES_ENDPOINT = V1_MANAGED_ENDPOINT + "/devices";
     String V2_BYPASS_ENDPOINT = HOST_ENDPOINT + "/v2/deviceManaged/bypassV2";
 }
