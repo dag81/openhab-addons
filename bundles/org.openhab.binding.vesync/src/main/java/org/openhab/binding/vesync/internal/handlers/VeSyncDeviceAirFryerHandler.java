@@ -24,6 +24,7 @@ import org.openhab.binding.vesync.internal.VeSyncBridgeConfiguration;
 import org.openhab.core.cache.ExpiringCache;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.types.Command;
 
@@ -37,6 +38,8 @@ import org.openhab.core.types.Command;
 public class VeSyncDeviceAirFryerHandler extends VeSyncBaseDeviceHandler {
 
     public static final String DEV_TYPE_FAMILY_AIR_FRYER = "CS-AF";
+
+    public static final int DEFAULT_AIR_FRYER_POLL_RATE = 30;
 
     public static final String DEV_FAMILY_CORSORI_3758L = "Corsori 3758L";
 
@@ -68,6 +71,15 @@ public class VeSyncDeviceAirFryerHandler extends VeSyncBaseDeviceHandler {
 
     @Override
     public void updateBridgeBasedPolls(final VeSyncBridgeConfiguration config) {
+        Integer pollRate = config.airFryerPollInterval;
+        if (pollRate == null) {
+            pollRate = DEFAULT_AIR_FRYER_POLL_RATE;
+        }
+        if (ThingStatus.OFFLINE.equals(getThing().getStatus())) {
+            setBackgroundPollInterval(-1);
+        } else {
+            setBackgroundPollInterval(pollRate);
+        }
     }
 
     @Override

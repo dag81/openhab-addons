@@ -40,4 +40,10 @@ public class VeSyncBridgeConfiguration {
      */
     @Nullable
     public Integer airPurifierPollInterval;
+
+    /**
+     * The polling interval to use for air fryer devices.
+     */
+    @Nullable
+    public Integer airFryerPollInterval;
 }
