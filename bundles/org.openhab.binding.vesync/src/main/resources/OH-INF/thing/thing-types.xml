@@ -132,6 +132,38 @@
 
 	</thing-type>
 
+	<thing-type id="airFryer">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="bridge"/>
+		</supported-bridge-type-refs>
+
+		<label>Air Fryer via VeSync</label>
+		<description>An Air Fryer uplinking to VeSync</description>
+
+		<channels>
+		</channels>
+
+		<properties>
+			<property name="Device Name"/>
+			<property name="Device Type"/>
+			<property name="MAC Id"/>
+			<property name="Device Family"/>
+		</properties>
+		<representation-property>macId</representation-property>
+
+		<config-description>
+			<parameter name="macId" type="text">
+				<label>MAC Id</label>
+				<description>The MAC Id of the device as reported by the API.</description>
+			</parameter>
+			<parameter name="deviceName" type="text">
+				<label>Device Name</label>
+				<description>The name allocated to the device by the app. (Must be unique if used)</description>
+			</parameter>
+		</config-description>
+
+	</thing-type>
+
 	<channel-type id="deviceEnabledType">
 		<item-type>Switch</item-type>
 		<label>Switched On</label>
