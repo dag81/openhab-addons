@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,12 +16,14 @@ import static org.openhab.io.homekit.internal.HomekitCharacteristicType.BATTERY_
 import static org.openhab.io.homekit.internal.HomekitCharacteristicType.BATTERY_LEVEL;
 import static org.openhab.io.homekit.internal.HomekitCharacteristicType.BATTERY_LOW_STATUS;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.io.homekit.internal.HomekitAccessoryUpdater;
+import org.openhab.io.homekit.internal.HomekitCharacteristicType;
 import org.openhab.io.homekit.internal.HomekitSettings;
 import org.openhab.io.homekit.internal.HomekitTaggedItem;
 
@@ -37,18 +39,20 @@ import io.github.hapjava.services.impl.BatteryService;
  * @author Eugen Freiter - Initial contribution
  */
 public class HomekitBatteryImpl extends AbstractHomekitAccessoryImpl implements BatteryAccessory {
-    private static final String BATTERY_TYPE = "chargeable";
+    public static final String BATTERY_TYPE = "chargeable";
 
     private final BooleanItemReader lowBatteryReader;
     private BooleanItemReader chargingBatteryReader;
     private final boolean isChargeable;
+    private final BigDecimal lowThreshold;
 
     public HomekitBatteryImpl(HomekitTaggedItem taggedItem, List<HomekitTaggedItem> mandatoryCharacteristics,
             HomekitAccessoryUpdater updater, HomekitSettings settings) throws IncompleteAccessoryException {
         super(taggedItem, mandatoryCharacteristics, updater, settings);
-        lowBatteryReader = createBooleanReader(BATTERY_LOW_STATUS);
-        final String batteryTypeConfig = getAccessoryConfiguration(BATTERY_TYPE, "false");
-        isChargeable = "true".equalsIgnoreCase(batteryTypeConfig) || "yes".equalsIgnoreCase(batteryTypeConfig);
+        lowThreshold = getAccessoryConfiguration(HomekitCharacteristicType.BATTERY_LOW_STATUS,
+                HomekitTaggedItem.BATTERY_LOW_THRESHOLD, BigDecimal.valueOf(20));
+        lowBatteryReader = createBooleanReader(BATTERY_LOW_STATUS, lowThreshold, true);
+        isChargeable = getAccessoryConfigurationAsBoolean(BATTERY_TYPE, false);
         if (isChargeable) {
             chargingBatteryReader = createBooleanReader(BATTERY_CHARGING_STATE);
         }
@@ -87,7 +91,9 @@ public class HomekitBatteryImpl extends AbstractHomekitAccessoryImpl implements 
 
     @Override
     public void subscribeBatteryChargingState(final HomekitCharacteristicChangeCallback callback) {
-        subscribe(BATTERY_CHARGING_STATE, callback);
+        if (isChargeable) {
+            subscribe(BATTERY_CHARGING_STATE, callback);
+        }
     }
 
     @Override
@@ -102,6 +108,8 @@ public class HomekitBatteryImpl extends AbstractHomekitAccessoryImpl implements 
 
     @Override
     public void unsubscribeBatteryChargingState() {
-        unsubscribe(BATTERY_CHARGING_STATE);
+        if (isChargeable) {
+            unsubscribe(BATTERY_CHARGING_STATE);
+        }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,6 +16,7 @@ import static org.openhab.binding.tado.internal.api.TadoApiTypeUtils.temperature
 
 import java.io.IOException;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
@@ -34,6 +35,7 @@ import org.openhab.binding.tado.internal.api.model.TemperatureObject;
  *
  * @author Dennis Frommknecht - Initial contribution
  */
+@NonNullByDefault
 public class HeatingZoneSettingsBuilder extends ZoneSettingsBuilder {
     private static final float DEFAULT_TEMPERATURE_C = 22.0f;
     private static final float DEFAULT_TEMPERATURE_F = 72.0f;
@@ -77,6 +79,7 @@ public class HeatingZoneSettingsBuilder extends ZoneSettingsBuilder {
 
         HeatingZoneSetting setting = heatingSetting(true);
 
+        Float temperature = this.temperature;
         if (temperature != null) {
             setting.setTemperature(temperature(temperature, temperatureUnit));
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -79,6 +79,7 @@ public class PubSubAPI {
             }
 
             try {
+                checkAccessTokenValidity();
                 String messages = pullSubscriptionMessages(subscriptionId);
 
                 PubSubPullResponse pullResponse = GSON.fromJson(messages, PubSubPullResponse.class);
@@ -104,7 +105,8 @@ public class PubSubAPI {
                     scheduler.schedule(this, RETRY_TIMEOUT.toNanos(), TimeUnit.NANOSECONDS);
                 }
             } catch (InvalidPubSubAccessTokenException e) {
-                logger.warn("Cannot pull messages for '{}' subscription (access token invalid)", subscriptionId, e);
+                logger.warn("Cannot pull messages for '{}' subscription (access or refresh token invalid)",
+                        subscriptionId, e);
                 forEachListener(listener -> listener.onError(e));
             } catch (Exception e) {
                 logger.warn("Unexpected exception while pulling message for '{}' subscription", subscriptionId, e);
@@ -142,7 +144,9 @@ public class PubSubAPI {
     private final Logger logger = LoggerFactory.getLogger(PubSubAPI.class);
 
     private final HttpClient httpClient;
+    private final OAuthFactory oAuthFactory;
     private final OAuthClientService oAuthService;
+    private final String oAuthServiceHandleId;
     private final String projectId;
     private final ScheduledThreadPoolExecutor scheduler;
     private final Map<String, Set<PubSubSubscriptionListener>> subscriptionListeners = new HashMap<>();
@@ -151,14 +155,21 @@ public class PubSubAPI {
             String clientId, String clientSecret) {
         this.httpClient = httpClientFactory.getCommonHttpClient();
         this.projectId = projectId;
-        this.oAuthService = oAuthFactory.createOAuthClientService(String.format(PUBSUB_HANDLE_FORMAT, ownerId),
-                TOKEN_URL, AUTH_URL, clientId, clientSecret, PUBSUB_SCOPE, false);
+        this.oAuthFactory = oAuthFactory;
+        this.oAuthServiceHandleId = String.format(PUBSUB_HANDLE_FORMAT, ownerId);
+        this.oAuthService = oAuthFactory.createOAuthClientService(oAuthServiceHandleId, TOKEN_URL, AUTH_URL, clientId,
+                clientSecret, PUBSUB_SCOPE, false);
         scheduler = new ScheduledThreadPoolExecutor(3, new NamedThreadFactory(ownerId, true));
     }
 
     public void dispose() {
         subscriptionListeners.clear();
         scheduler.shutdownNow();
+        oAuthFactory.ungetOAuthService(oAuthServiceHandleId);
+    }
+
+    public void deleteOAuthServiceAndAccessToken() {
+        oAuthFactory.deleteServiceAndAccessToken(oAuthServiceHandleId);
     }
 
     public void authorizeClient(String authorizationCode) throws InvalidPubSubAuthorizationCodeException, IOException {
@@ -224,6 +235,10 @@ public class PubSubAPI {
             if (response == null || response.getAccessToken() == null || response.getAccessToken().isEmpty()) {
                 throw new InvalidPubSubAccessTokenException(
                         "No Pub/Sub access token. Client may not have been authorized.");
+            }
+            if (response.getRefreshToken() == null || response.getRefreshToken().isEmpty()) {
+                throw new InvalidPubSubAccessTokenException(
+                        "No Pub/Sub refresh token. Delete and readd credentials, then reauthorize.");
             }
             return BEARER + response.getAccessToken();
         } catch (OAuthException | OAuthResponseException e) {

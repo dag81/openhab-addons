@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -162,15 +162,17 @@ public class ElroConnectsBridgeHandler extends BaseBridgeHandler {
         legacyFirmware = config.legacyFirmware;
 
         if (connectorId.isEmpty()) {
-            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "@text/offline.no-device-id");
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "@text/offline.no-connector-id");
             return;
         } else if (!CONNECTOR_ID_PATTERN.matcher(connectorId).matches()) {
-            String msg = String.format("@text/offline.invalid-device-id [ \"%s\" ]", connectorId);
+            String msg = String.format("@text/offline.invalid-connector-id [ \"%s\" ]", connectorId);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, msg);
             return;
         }
 
         queryString = QUERY_BASE_STRING + connectorId;
+
+        updateStatus(ThingStatus.UNKNOWN);
 
         scheduler.submit(this::startCommunication);
     }
@@ -851,7 +853,7 @@ public class ElroConnectsBridgeHandler extends BaseBridgeHandler {
         logger.debug("Sync scenes");
         ElroConnectsMessage elroMessage = new ElroConnectsMessage(msgIdIncrement(), connectorId, ctrlKey,
                 ELRO_SYNC_SCENES, legacyFirmware).withSceneGroup(0).withSceneContent(SYNC_COMMAND)
-                        .withAnswerContent(SYNC_COMMAND);
+                .withAnswerContent(SYNC_COMMAND);
         sendElroMessage(elroMessage, true);
     }
 

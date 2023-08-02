@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -46,8 +46,10 @@ public final class ElroConnectsUtil {
      */
     public static String encode(String input, int length) {
         byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-        String content = "@".repeat(length - bytes.length) + new String(bytes, StandardCharsets.UTF_8) + "$";
-        bytes = content.getBytes(StandardCharsets.UTF_8);
+        String content = "@".repeat((length > bytes.length) ? (length - bytes.length) : 0)
+                + new String(bytes, StandardCharsets.UTF_8);
+        bytes = Arrays.copyOf(content.getBytes(StandardCharsets.UTF_8), length + 1);
+        bytes[length] = (byte) "$".charAt(0);
         return HexUtils.bytesToHex(bytes);
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -30,6 +30,11 @@ public class WatsonSTTConfiguration {
      * Url for Speech-to-Text instance created on IBM Cloud.
      */
     public String instanceUrl = "";
+    /**
+     * Prefer multimedia to telephony models. Multimedia models are intended for audio that has a minimum sampling rate
+     * of 16 kHz, while telephony models are intended for audio that has a minimum sampling rate of 8 kHz.
+     */
+    public boolean preferMultimediaModel = true;
     /**
      * Use the parameter to suppress side conversations or background noise.
      */

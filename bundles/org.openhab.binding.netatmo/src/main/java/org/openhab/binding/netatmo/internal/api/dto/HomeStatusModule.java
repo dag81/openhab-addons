@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,10 +16,12 @@ import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.netatmo.internal.api.data.ModuleType;
 import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.AlimentationStatus;
 import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.BatteryState;
 import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.FloodLightMode;
 import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.SdCardStatus;
+import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.SirenStatus;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.types.State;
@@ -41,7 +43,7 @@ public class HomeStatusModule extends NAThing {
     private FloodLightMode floodlight = FloodLightMode.UNKNOWN;
     private SdCardStatus sdStatus = SdCardStatus.UNKNOWN;
     private AlimentationStatus alimStatus = AlimentationStatus.UNKNOWN;
-    private @Nullable String sirenStatus;
+    private SirenStatus sirenStatus = SirenStatus.UNKNOWN;
     private @Nullable String vpnUrl;
     private boolean isLocal;
     private BatteryState batteryState = BatteryState.UNKNOWN;
@@ -73,7 +75,8 @@ public class HomeStatusModule extends NAThing {
 
     public State getMonitoring() {
         OnOffType localStatus = monitoring;
-        return localStatus != null ? localStatus : UnDefType.NULL;
+        return localStatus != null ? localStatus // Monitoring is always active on Doorbell
+                : getType().equals(ModuleType.DOORBELL) ? OnOffType.ON : UnDefType.NULL;
     }
 
     public FloodLightMode getFloodlight() {
@@ -88,8 +91,8 @@ public class HomeStatusModule extends NAThing {
         return alimStatus;
     }
 
-    public Optional<String> getSirenStatus() {
-        return Optional.ofNullable(sirenStatus);
+    public SirenStatus getSirenStatus() {
+        return sirenStatus;
     }
 
     public @Nullable String getVpnUrl() {

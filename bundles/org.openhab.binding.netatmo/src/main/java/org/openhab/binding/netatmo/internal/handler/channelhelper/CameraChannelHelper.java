@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -14,6 +14,8 @@ package org.openhab.binding.netatmo.internal.handler.channelhelper;
 
 import static org.openhab.binding.netatmo.internal.NetatmoBindingConstants.*;
 import static org.openhab.binding.netatmo.internal.utils.ChannelTypeUtils.*;
+
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -38,8 +40,8 @@ public class CameraChannelHelper extends ChannelHelper {
     private @Nullable String vpnUrl;
     private @Nullable String localUrl;
 
-    public CameraChannelHelper() {
-        super(GROUP_CAM_STATUS, GROUP_CAM_LIVE);
+    public CameraChannelHelper(Set<String> providedGroups) {
+        super(providedGroups);
     }
 
     public void setUrls(String vpnUrl, @Nullable String localUrl) {

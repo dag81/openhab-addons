@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -394,7 +394,8 @@ class AuthTest {
             String url = "https://" + BimmerConstants.EADRAX_SERVER_MAP.get(BimmerConstants.REGION_CHINA)
                     + BimmerConstants.CHINA_PUBLIC_KEY;
             Request oauthQueryRequest = authHttpClient.newRequest(url);
-            oauthQueryRequest.header(X_USER_AGENT, BimmerConstants.USER_AGENT_BMW);
+            oauthQueryRequest.header(X_USER_AGENT,
+                    String.format(BimmerConstants.BRAND_BMW, BimmerConstants.BRAND_BMW, BimmerConstants.REGION_ROW));
 
             ContentResponse publicKeyResponse = oauthQueryRequest.send();
             ChinaPublicKeyResponse pkr = Converter.getGson().fromJson(publicKeyResponse.getContentAsString(),

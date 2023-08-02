@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -19,6 +19,7 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.client.HttpClient;
+import org.openhab.binding.netatmo.internal.api.data.ChannelGroup;
 import org.openhab.binding.netatmo.internal.api.data.ModuleType;
 import org.openhab.binding.netatmo.internal.config.BindingConfiguration;
 import org.openhab.binding.netatmo.internal.deserialization.NADeserializer;
@@ -27,11 +28,12 @@ import org.openhab.binding.netatmo.internal.handler.CommonInterface;
 import org.openhab.binding.netatmo.internal.handler.DeviceHandler;
 import org.openhab.binding.netatmo.internal.handler.ModuleHandler;
 import org.openhab.binding.netatmo.internal.handler.capability.AirCareCapability;
+import org.openhab.binding.netatmo.internal.handler.capability.AlarmEventCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.CameraCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.Capability;
 import org.openhab.binding.netatmo.internal.handler.capability.ChannelHelperCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.DeviceCapability;
-import org.openhab.binding.netatmo.internal.handler.capability.EventCapability;
+import org.openhab.binding.netatmo.internal.handler.capability.DoorbellCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.HomeCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.MeasureCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.PersonCapability;
@@ -40,6 +42,7 @@ import org.openhab.binding.netatmo.internal.handler.capability.RoomCapability;
 import org.openhab.binding.netatmo.internal.handler.capability.WeatherCapability;
 import org.openhab.binding.netatmo.internal.handler.channelhelper.ChannelHelper;
 import org.openhab.binding.netatmo.internal.providers.NetatmoDescriptionProvider;
+import org.openhab.core.auth.client.oauth2.OAuthFactory;
 import org.openhab.core.config.core.ConfigParser;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.thing.Bridge;
@@ -68,20 +71,23 @@ import org.slf4j.LoggerFactory;
 public class NetatmoHandlerFactory extends BaseThingHandlerFactory {
     private final Logger logger = LoggerFactory.getLogger(NetatmoHandlerFactory.class);
 
-    private final NetatmoDescriptionProvider stateDescriptionProvider;
-    private final HttpClient httpClient;
-    private final NADeserializer deserializer;
-    private final HttpService httpService;
     private final BindingConfiguration configuration = new BindingConfiguration();
+    private final NetatmoDescriptionProvider stateDescriptionProvider;
+    private final NADeserializer deserializer;
+    private final HttpClient httpClient;
+    private final HttpService httpService;
+    private final OAuthFactory oAuthFactory;
 
     @Activate
-    public NetatmoHandlerFactory(@Reference NetatmoDescriptionProvider stateDescriptionProvider,
-            @Reference HttpClientFactory factory, @Reference NADeserializer deserializer,
-            @Reference HttpService httpService, Map<String, @Nullable Object> config) {
+    public NetatmoHandlerFactory(final @Reference NetatmoDescriptionProvider stateDescriptionProvider,
+            final @Reference HttpClientFactory factory, final @Reference NADeserializer deserializer,
+            final @Reference HttpService httpService, final @Reference OAuthFactory oAuthFactory,
+            Map<String, @Nullable Object> config) {
         this.stateDescriptionProvider = stateDescriptionProvider;
         this.httpClient = factory.getCommonHttpClient();
-        this.httpService = httpService;
         this.deserializer = deserializer;
+        this.httpService = httpService;
+        this.oAuthFactory = oAuthFactory;
         configChanged(config);
     }
 
@@ -107,18 +113,14 @@ public class NetatmoHandlerFactory extends BaseThingHandlerFactory {
 
     private BaseThingHandler buildHandler(Thing thing, ModuleType moduleType) {
         if (ModuleType.ACCOUNT.equals(moduleType)) {
-            return new ApiBridgeHandler((Bridge) thing, httpClient, httpService, deserializer, configuration);
+            return new ApiBridgeHandler((Bridge) thing, httpClient, deserializer, configuration, httpService,
+                    oAuthFactory);
         }
         CommonInterface handler = moduleType.isABridge() ? new DeviceHandler((Bridge) thing) : new ModuleHandler(thing);
 
         List<ChannelHelper> helpers = new ArrayList<>();
-        moduleType.channelHelpers.forEach(helperClass -> {
-            try {
-                helpers.add(helperClass.getConstructor().newInstance());
-            } catch (ReflectiveOperationException e) {
-                logger.warn("Error creating or initializing helper class : {}", e.getMessage());
-            }
-        });
+
+        helpers.addAll(moduleType.channelGroups.stream().map(ChannelGroup::getHelperInstance).toList());
 
         moduleType.capabilities.forEach(capability -> {
             Capability newCap = null;
@@ -126,18 +128,20 @@ public class NetatmoHandlerFactory extends BaseThingHandlerFactory {
                 newCap = new DeviceCapability(handler);
             } else if (capability == AirCareCapability.class) {
                 newCap = new AirCareCapability(handler);
-            } else if (capability == EventCapability.class) {
-                newCap = new EventCapability(handler);
             } else if (capability == HomeCapability.class) {
                 newCap = new HomeCapability(handler, stateDescriptionProvider);
             } else if (capability == WeatherCapability.class) {
                 newCap = new WeatherCapability(handler);
             } else if (capability == RoomCapability.class) {
                 newCap = new RoomCapability(handler);
+            } else if (capability == DoorbellCapability.class) {
+                newCap = new DoorbellCapability(handler, stateDescriptionProvider, helpers);
             } else if (capability == PersonCapability.class) {
                 newCap = new PersonCapability(handler, stateDescriptionProvider, helpers);
             } else if (capability == CameraCapability.class) {
                 newCap = new CameraCapability(handler, stateDescriptionProvider, helpers);
+            } else if (capability == AlarmEventCapability.class) {
+                newCap = new AlarmEventCapability(handler, stateDescriptionProvider, helpers);
             } else if (capability == PresenceCapability.class) {
                 newCap = new PresenceCapability(handler, stateDescriptionProvider, helpers);
             } else if (capability == MeasureCapability.class) {

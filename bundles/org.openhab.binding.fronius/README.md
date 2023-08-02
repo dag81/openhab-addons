@@ -2,12 +2,14 @@
 
 This binding uses the [Fronius Solar API V1](https://www.fronius.com/en/photovoltaics/products/all-products/system-monitoring/open-interfaces/fronius-solar-api-json-) to obtain data from Fronius devices.
 
-It supports Fronius inverters and Fronius Smart Meter. Supports:
-* Fronius Symo
-* Fronius Symo Gen24
-* Fronius Smart Meter 63A
-* Fronius Smart Meter TS 65A-3
-* Fronius Ohmpilot
+It supports Fronius inverters and Fronius Smart Meter.
+Supports:
+
+- Fronius Symo
+- Fronius Symo Gen24
+- Fronius Smart Meter 63A
+- Fronius Smart Meter TS 65A-3
+- Fronius Ohmpilot
 
 ## Supported Things
 
@@ -59,12 +61,19 @@ The binding has no configuration options, all configuration is done at `bridge`,
 
 | Channel ID                           | Item Type                | Description                                                                                                       |
 | ------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `inverterdatachannelpac`             | Number:Power             | Power generated                                                                                                   |
+| `inverterdatachannelpac`             | Number:Power             | AC Power generated                                                                                                |
+| `inverterdatachannelpdc`             | Number:Power             | DC Power calculated from DC voltage * DC current                                                                  |
+| `inverterdatachannelpdc2`            | Number:Power             | DC Power 2 calculated from DC voltage 2 * DC current 2                                                            |
+| `inverterdatachannelpdc3`            | Number:Power             | DC Power 3 calculated from DC voltage 3 * DC current 3                                                            |
 | `inverterdatachannelfac`             | Number:Frequency         | AC frequency                                                                                                      |
 | `inverterdatachanneliac`             | Number:ElectricCurrent   | AC current                                                                                                        |
 | `inverterdatachannelidc`             | Number:ElectricCurrent   | DC current                                                                                                        |
+| `inverterdatachannelidc2`            | Number:ElectricCurrent   | DC current 2                                                                                                      |
+| `inverterdatachannelidc3`            | Number:ElectricCurrent   | DC current 3                                                                                                      |
 | `inverterdatachanneluac`             | Number:ElectricPotential | AC voltage                                                                                                        |
 | `inverterdatachanneludc`             | Number:ElectricPotential | DC voltage                                                                                                        |
+| `inverterdatachanneludc2`            | Number:ElectricPotential | DC voltage 2                                                                                                      |
+| `inverterdatachanneludc3`            | Number:ElectricPotential | DC voltage 3                                                                                                      |
 | `inverterdatachanneldayenergy`       | Number:Energy            | Energy generated on current day                                                                                   |
 | `inverterdatachannelyear`            | Number:Energy            | Energy generated in current year                                                                                  |
 | `inverterdatachanneltotal`           | Number:Energy            | Energy generated overall                                                                                          |
@@ -73,7 +82,7 @@ The binding has no configuration options, all configuration is done at `bridge`,
 | `powerflowchannelpgrid`              | Number:Power             | Grid Power (+ from grid, - to grid)                                                                               |
 | `powerflowchannelpload`              | Number:Power             | Load Power (+ generator, - consumer)                                                                              |
 | `powerflowchannelpakku`              | Number:Power             | Battery Power (+ charge, - discharge)                                                                             |
-| `powerflowchannelppv`                | Number:Power             | Solar Power (+ production)                                                                                              |
+| `powerflowchannelppv`                | Number:Power             | Solar Power (+ production)                                                                                        |
 | `powerflowautonomy`                  | Number:Dimensionless     | The current relative autonomy in %                                                                                |
 | `powerflowselfconsumption`           | Number:Dimensionless     | The current relative self consumption in %                                                                        |
 | `powerflowinverter1power`            | Number:Power             | Current power of inverter 1, null if not running (+ produce/export, - consume/import)                             |
@@ -101,7 +110,6 @@ The binding has no configuration options, all configuration is done at `bridge`,
 | `energyrealsumconsumed` | Number:Energy            | Real Energy consumed                                                                                                                                                                                                     |
 | `energyrealsumproduced` | Number:Energy            | Real Energy produced                                                                                                                                                                                                     |
 
-
 ### Channels for `ohmpilot` Thing
 
 | Channel ID              | Item Type          | Description                                                                                                                                                              |
@@ -111,7 +119,6 @@ The binding has no configuration options, all configuration is done at `bridge`,
 | `temperaturechannel1`   | Number:Temperature | Temperature                                                                                                                                                              |
 | `errorcode`             | Number             | Device error code                                                                                                                                                        |
 | `statecode`             | Number             | Device state code<br />`0` up and running <br />`1` keep minimum temperature <br />`2` legionella protection <br />`3` critical fault<br />`4` fault<br />`5` boost mode |
-
 
 ## Properties
 
@@ -133,7 +140,7 @@ The binding has no configuration options, all configuration is done at `bridge`,
 
 demo.things:
 
-```
+```java
 Bridge fronius:bridge:mybridge [hostname="192.168.66.148", refreshInterval=5] {
     Thing powerinverter myinverter [deviceId=1]
     Thing meter mymeter [deviceId=0]
@@ -143,7 +150,7 @@ Bridge fronius:bridge:mybridge [hostname="192.168.66.148", refreshInterval=5] {
 
 demo.items:
 
-```
+```java
 Number:Power AC_Power { channel="fronius:powerinverter:mybridge:myinverter:inverterdatachannelpac" }
 Number:Energy Day_Energy { channel="fronius:powerinverter:mybridge:myinverter:inverterdatachanneldayenergy" }
 Number:Energy Total_Energy { channel="fronius:powerinverter:mybridge:myinverter:inverterdatachanneltotal" }

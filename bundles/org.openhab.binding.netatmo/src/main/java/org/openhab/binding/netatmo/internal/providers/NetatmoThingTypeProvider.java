@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -18,11 +18,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.netatmo.internal.api.data.ModuleType;
+import org.openhab.binding.netatmo.internal.config.NAThingConfiguration;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.ThingTypeProvider;
 import org.openhab.core.thing.i18n.ThingTypeI18nLocalizationService;
@@ -62,8 +62,7 @@ public class NetatmoThingTypeProvider implements ThingTypeProvider {
     @Override
     public Collection<ThingType> getThingTypes(@Nullable Locale locale) {
         return ModuleType.AS_SET.stream().filter(mt -> mt != ModuleType.UNKNOWN)
-                .map(mt -> Optional.ofNullable(getThingType(mt.thingTypeUID, locale))).map(Optional::get)
-                .collect(Collectors.toList());
+                .map(mt -> Optional.ofNullable(getThingType(mt.thingTypeUID, locale))).map(Optional::get).toList();
     }
 
     @Override
@@ -73,7 +72,8 @@ public class NetatmoThingTypeProvider implements ThingTypeProvider {
                 ModuleType moduleType = ModuleType.from(thingTypeUID);
 
                 ThingTypeBuilder thingTypeBuilder = ThingTypeBuilder.instance(thingTypeUID, thingTypeUID.toString())
-                        .withRepresentationProperty(EQUIPMENT_ID).withExtensibleChannelTypeIds(moduleType.extensions)
+                        .withRepresentationProperty(NAThingConfiguration.ID)
+                        .withExtensibleChannelTypeIds(moduleType.getExtensions())
                         .withChannelGroupDefinitions(getGroupDefinitions(moduleType))
                         .withConfigDescriptionURI(moduleType.getConfigDescription());
 
@@ -92,11 +92,15 @@ public class NetatmoThingTypeProvider implements ThingTypeProvider {
     }
 
     private List<ChannelGroupDefinition> getGroupDefinitions(ModuleType thingType) {
-        return thingType.groupTypes.stream().map(groupTypeName -> new ChannelGroupDefinition(toGroupName(groupTypeName),
-                new ChannelGroupTypeUID(BINDING_ID, groupTypeName))).collect(Collectors.toList());
+        return thingType.getGroupTypes().stream().map(groupType -> new ChannelGroupDefinition(toGroupName(groupType),
+                new ChannelGroupTypeUID(BINDING_ID, groupType))).toList();
     }
 
     public static String toGroupName(String groupeTypeName) {
-        return groupeTypeName.replace(OPTION_EXTENDED, "").replace(OPTION_OUTSIDE, "");
+        String result = groupeTypeName;
+        for (String variation : GROUP_VARIATIONS) {
+            result = result.replace(variation, "");
+        }
+        return result;
     }
 }

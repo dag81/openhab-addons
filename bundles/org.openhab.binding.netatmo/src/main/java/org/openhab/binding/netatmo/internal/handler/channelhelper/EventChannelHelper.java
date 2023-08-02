@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,11 +15,12 @@ package org.openhab.binding.netatmo.internal.handler.channelhelper;
 import static org.openhab.binding.netatmo.internal.NetatmoBindingConstants.*;
 import static org.openhab.binding.netatmo.internal.utils.ChannelTypeUtils.*;
 
-import java.time.ZonedDateTime;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.netatmo.internal.api.data.ModuleType;
+import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.VideoStatus;
 import org.openhab.binding.netatmo.internal.api.dto.Event;
 import org.openhab.binding.netatmo.internal.api.dto.HomeEvent;
 import org.openhab.binding.netatmo.internal.api.dto.NAObject;
@@ -36,16 +37,11 @@ import org.openhab.core.types.UnDefType;
 @NonNullByDefault
 public class EventChannelHelper extends ChannelHelper {
     private boolean isLocal;
-    private @Nullable ZonedDateTime lastEventTime;
     private @Nullable String vpnUrl, localUrl;
-    private ModuleType moduleType = ModuleType.UNKNOWN;
+    protected ModuleType moduleType = ModuleType.UNKNOWN;
 
-    public EventChannelHelper() {
-        this(GROUP_LAST_EVENT);
-    }
-
-    protected EventChannelHelper(String groupName) {
-        super(groupName);
+    public EventChannelHelper(Set<String> providedGroups) {
+        super(providedGroups);
     }
 
     public void setModuleType(ModuleType moduleType) {
@@ -62,12 +58,9 @@ public class EventChannelHelper extends ChannelHelper {
     public void setNewData(@Nullable NAObject data) {
         if (data instanceof Event) {
             Event event = (Event) data;
-            ZonedDateTime localLast = lastEventTime;
-            ZonedDateTime eventTime = event.getTime();
-            if ((localLast != null && !eventTime.isAfter(localLast)) || !event.getEventType().appliesOn(moduleType)) {
-                return; // ignore incoming events if they are deprecated
+            if (!event.getEventType().validFor(moduleType)) {
+                return;
             }
-            lastEventTime = eventTime;
         }
         super.setNewData(data);
     }
@@ -92,23 +85,25 @@ public class EventChannelHelper extends ChannelHelper {
             case CHANNEL_EVENT_SNAPSHOT_URL:
                 return toStringType(event.getSnapshotUrl());
         }
-        if (event instanceof HomeEvent) {
-            HomeEvent homeEvent = (HomeEvent) event;
-            switch (channelId) {
-                case CHANNEL_EVENT_VIDEO_STATUS:
-                    return homeEvent.getVideoId() != null ? toStringType(homeEvent.getVideoStatus()) : UnDefType.NULL;
-                case CHANNEL_EVENT_VIDEO_LOCAL_URL:
-                    return getStreamURL(true, homeEvent.getVideoId());
-                case CHANNEL_EVENT_VIDEO_VPN_URL:
-                    return getStreamURL(false, homeEvent.getVideoId());
-            }
+        return null;
+    }
+
+    @Override
+    protected @Nullable State internalGetHomeEvent(String channelId, @Nullable String groupId, HomeEvent event) {
+        switch (channelId) {
+            case CHANNEL_EVENT_VIDEO_STATUS:
+                return event.getVideoId() != null ? toStringType(event.getVideoStatus()) : UnDefType.NULL;
+            case CHANNEL_EVENT_VIDEO_LOCAL_URL:
+                return getStreamURL(true, event.getVideoId(), event.getVideoStatus());
+            case CHANNEL_EVENT_VIDEO_VPN_URL:
+                return getStreamURL(false, event.getVideoId(), event.getVideoStatus());
         }
         return null;
     }
 
-    private State getStreamURL(boolean local, @Nullable String videoId) {
+    private State getStreamURL(boolean local, @Nullable String videoId, VideoStatus videoStatus) {
         String url = local ? localUrl : vpnUrl;
-        if ((local && !isLocal) || url == null || videoId == null) {
+        if ((local && !isLocal) || url == null || videoId == null || videoStatus != VideoStatus.AVAILABLE) {
             return UnDefType.NULL;
         }
         return toStringType("%s/vod/%s/index.m3u8", url, videoId);
