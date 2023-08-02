@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -75,7 +75,8 @@ public class ElroConnectsDeviceTemperatureSensor extends ElroConnectsDevice {
                 handler.updateState(LOW_BATTERY, UnDefType.UNDEF);
                 handler.updateState(TEMPERATURE, UnDefType.UNDEF);
                 handler.updateState(HUMIDITY, UnDefType.UNDEF);
-                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE, "Device " + deviceId + " has a fault");
+                String msg = String.format("@text/offline.device-fault [ \"%d\" ]", deviceId);
+                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE, msg);
                 break;
             default:
                 handler.updateState(SIGNAL_STRENGTH, new DecimalType(signalStrength));

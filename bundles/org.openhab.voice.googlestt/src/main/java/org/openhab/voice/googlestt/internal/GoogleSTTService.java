@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -48,6 +48,7 @@ import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -117,6 +118,14 @@ public class GoogleSTTService implements STTService {
         updateConfig();
     }
 
+    @Deactivate
+    protected void dispose() {
+        if (oAuthService != null) {
+            oAuthFactory.ungetOAuthService(SERVICE_PID);
+            oAuthService = null;
+        }
+    }
+
     @Override
     public String getId() {
         return SERVICE_ID;
@@ -157,6 +166,10 @@ public class GoogleSTTService implements STTService {
     }
 
     private void updateConfig() {
+        if (oAuthService != null) {
+            oAuthFactory.ungetOAuthService(SERVICE_PID);
+            oAuthService = null;
+        }
         String clientId = this.config.clientId;
         String clientSecret = this.config.clientSecret;
         if (!clientId.isBlank() && !clientSecret.isBlank()) {
@@ -175,7 +188,11 @@ public class GoogleSTTService implements STTService {
     private void getAccessToken(OAuthClientService oAuthService, String oauthCode) {
         logger.debug("Trying to get access and refresh tokens.");
         try {
-            oAuthService.getAccessTokenResponseByAuthorizationCode(oauthCode, GCP_REDIRECT_URI);
+            AccessTokenResponse response = oAuthService.getAccessTokenResponseByAuthorizationCode(oauthCode,
+                    GCP_REDIRECT_URI);
+            if (response.getRefreshToken() == null || response.getRefreshToken().isEmpty()) {
+                logger.warn("Error fetching refresh token. Please try to reauthorize.");
+            }
         } catch (OAuthException | OAuthResponseException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Error fetching access token: {}", e.getMessage(), e);
@@ -251,12 +268,18 @@ public class GoogleSTTService implements STTService {
         long startTime = System.currentTimeMillis();
         long maxTranscriptionMillis = (config.maxTranscriptionSeconds * 1000L);
         long maxSilenceMillis = (config.maxSilenceSeconds * 1000L);
-        int readBytes = 6400;
-        while (!aborted.get()) {
-            byte[] data = new byte[readBytes];
-            int dataN = audioStream.read(data);
+        final int bufferSize = 6400;
+        int numBytesRead;
+        int remaining = bufferSize;
+        byte[] audioBuffer = new byte[bufferSize];
+        while (!aborted.get() && !responseObserver.isDone()) {
+            numBytesRead = audioStream.read(audioBuffer, bufferSize - remaining, remaining);
             if (aborted.get()) {
                 logger.debug("Stops listening, aborted");
+                break;
+            }
+            if (numBytesRead == -1) {
+                logger.debug("End of stream");
                 break;
             }
             if (isExpiredInterval(maxTranscriptionMillis, startTime)) {
@@ -268,18 +291,17 @@ public class GoogleSTTService implements STTService {
                 logger.debug("Stops listening, max silence time reached");
                 break;
             }
-            if (dataN != readBytes) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                }
+            if (numBytesRead != remaining) {
+                remaining = remaining - numBytesRead;
                 continue;
             }
+            remaining = bufferSize;
             StreamingRecognizeRequest dataRequest = StreamingRecognizeRequest.newBuilder()
-                    .setAudioContent(ByteString.copyFrom(data)).build();
-            logger.debug("Sending audio data {}", dataN);
+                    .setAudioContent(ByteString.copyFrom(audioBuffer)).build();
+            logger.debug("Sending audio data {}", bufferSize);
             clientStream.send(dataRequest);
         }
+        audioStream.close();
     }
 
     private void sendStreamConfig(ClientStream<StreamingRecognizeRequest> clientStream,
@@ -298,19 +320,21 @@ public class GoogleSTTService implements STTService {
 
     private @Nullable Credentials getCredentials() {
         String accessToken = null;
+        String refreshToken = null;
         try {
             OAuthClientService oAuthService = this.oAuthService;
             if (oAuthService != null) {
                 AccessTokenResponse response = oAuthService.getAccessTokenResponse();
                 if (response != null) {
                     accessToken = response.getAccessToken();
+                    refreshToken = response.getRefreshToken();
                 }
             }
         } catch (OAuthException | IOException | OAuthResponseException e) {
             logger.warn("Access token error: {}", e.getMessage());
         }
-        if (accessToken == null) {
-            logger.warn("Missed google cloud access token");
+        if (accessToken == null || refreshToken == null) {
+            logger.warn("Missed google cloud access and/or refresh token");
             return null;
         }
         return OAuth2Credentials.create(new AccessToken(accessToken, null));
@@ -329,6 +353,7 @@ public class GoogleSTTService implements STTService {
         private float confidenceSum = 0;
         private int responseCount = 0;
         private long lastInputTime = 0;
+        private boolean done = false;
 
         public TranscriptionListener(STTListener sttListener, GoogleSTTConfiguration config, AtomicBoolean aborted) {
             this.sttListener = sttListener;
@@ -368,7 +393,7 @@ public class GoogleSTTService implements STTService {
                     responseCount++;
                     // when in single utterance mode we can just get one final result so complete
                     if (config.singleUtteranceMode) {
-                        onComplete();
+                        done = true;
                     }
                 }
             });
@@ -403,6 +428,10 @@ public class GoogleSTTService implements STTService {
                             new SpeechRecognitionErrorEvent(errorMessage != null ? errorMessage : "Unknown error"));
                 }
             }
+        }
+
+        public boolean isDone() {
+            return done;
         }
 
         public long getLastInputTime() {

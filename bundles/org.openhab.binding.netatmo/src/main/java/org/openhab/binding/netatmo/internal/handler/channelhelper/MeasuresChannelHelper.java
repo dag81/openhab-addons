@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -13,6 +13,7 @@
 package org.openhab.binding.netatmo.internal.handler.channelhelper;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -28,6 +29,10 @@ import org.openhab.core.types.State;
 @NonNullByDefault
 public class MeasuresChannelHelper extends ChannelHelper {
     private @Nullable Map<String, State> measures;
+
+    public MeasuresChannelHelper(Set<String> providedGroups) {
+        super(providedGroups);
+    }
 
     public void setMeasures(Map<String, State> measures) {
         this.measures = measures;

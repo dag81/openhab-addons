@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -116,14 +116,15 @@ public class ElroConnectsDeviceGenericAlarm extends ElroConnectsDevice {
                 handler.updateState(SIGNAL_STRENGTH, UnDefType.UNDEF);
                 handler.updateState(BATTERY_LEVEL, UnDefType.UNDEF);
                 handler.updateState(LOW_BATTERY, UnDefType.UNDEF);
-                handler.updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        "Device " + deviceId + " is not syncing with K1 hub");
+                String msg = String.format("@text/offline.device-not-syncing [ \"%d\" ]", deviceId);
+                handler.updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, msg);
                 break;
             case FAULT:
                 handler.updateState(SIGNAL_STRENGTH, UnDefType.UNDEF);
                 handler.updateState(BATTERY_LEVEL, UnDefType.UNDEF);
                 handler.updateState(LOW_BATTERY, UnDefType.UNDEF);
-                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE, "Device " + deviceId + " has a fault");
+                msg = String.format("@text/offline.device-fault [ \"%d\" ]", deviceId);
+                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE, msg);
                 break;
             default:
                 handler.updateState(SIGNAL_STRENGTH, new DecimalType(signalStrength));

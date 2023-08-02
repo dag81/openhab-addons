@@ -10,11 +10,40 @@
 		<description>Monitoring state of the camera</description>
 	</channel-type>
 
+	<channel-type id="siren-monitoring">
+		<item-type>Switch</item-type>
+		<label>Monitoring</label>
+		<description>Monitoring state of the equipment</description>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="siren-status">
+		<item-type>Switch</item-type>
+		<label>Siren</label>
+		<description>Status of the siren</description>
+		<category>Soundvolume</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="siren-status-rw">
+		<item-type>Switch</item-type>
+		<label>Siren</label>
+		<description>Status of the siren</description>
+		<category>Soundvolume</category>
+	</channel-type>
+
 	<channel-type id="window-open">
 		<item-type>Contact</item-type>
 		<label>Window Status</label>
 		<description>Windows of the room are opened.</description>
 		<category>Window</category>
+		<state readOnly="true"/>
+	</channel-type>
+
+	<channel-type id="tag-status">
+		<item-type>Contact</item-type>
+		<label>Door Status</label>
+		<category>Door</category>
 		<state readOnly="true"/>
 	</channel-type>
 
@@ -30,19 +59,6 @@
 		<label>Heating Status</label>
 		<description>Is the furnace currently heating?</description>
 		<state readOnly="true"/>
-	</channel-type>
-
-	<channel-type id="camera-event">
-		<kind>trigger</kind>
-		<label>Camera Event</label>
-		<event>
-			<options>
-				<option value="ANIMAL"/>
-				<option value="HUMAN"/>
-				<option value="MOVEMENT"/>
-				<option value="VEHICLE"/>
-			</options>
-		</event>
 	</channel-type>
 
 	<channel-type id="battery-status">
@@ -64,6 +80,13 @@
 		<label>Planning</label>
 		<description>Planning currently applied when following weekly schedule.</description>
 		<state readOnly="false" pattern="%s"/>
+	</channel-type>
+
+	<channel-type id="request-count" advanced="true">
+		<item-type>Number</item-type>
+		<label>Request Count</label>
+		<description>Number of requests transmitted to Netatmo API during the last hour.</description>
+		<state readOnly="true" pattern="%d"/>
 	</channel-type>
 
 	<channel-type id="person-count">
@@ -119,6 +142,7 @@
 		<item-type>String</item-type>
 		<label>Floodlight</label>
 		<description>State of the floodlight (On/Off/Auto)</description>
+		<category>Lightbulb</category>
 		<state pattern="%s">
 			<options>
 				<option value="ON">On</option>
@@ -318,10 +342,11 @@
 				<option value="PERSON">Face detected</option>
 				<option value="PERSON_AWAY">Person has left home</option>
 				<option value="PERSON_HOME">Person is at home</option>
-				<option value="OUTDOOR">Motion detected by Presence</option>
+				<option value="OUTDOOR">Motion detected by Outdoor Camera</option>
 				<option value="MOVEMENT">Motion detected</option>
 				<option value="HUMAN">Human seen</option>
 				<option value="ANIMAL">Animal seen</option>
+				<option value="VEHICLE">Car seen</option>
 				<option value="NEW_MODULE">New Module has been paired</option>
 				<option value="MODULE_CONNECT">Module is connected with the Indoor Camera</option>
 				<option value="MODULE_DISCONNECT">Module lost its connection with the Indoor Camera</option>
@@ -334,6 +359,19 @@
 				<option value="BOOT">Camera booting</option>
 				<option value="SD">SD card status changed</option>
 				<option value="ALIM">Power status changed</option>
+				<option value="ACCEPTED_CALL">Call is incoming</option>
+				<option value="INCOMING_CALL">Call has been answered by a user</option>
+				<option value="RTC">Button pressed</option>
+				<option value="MISSED_CALL">Call has not been answered by anyone</option>
+				<option value="HUSH">Smoke detector status</option>
+				<option value="SMOKE">Smoke detection</option>
+				<option value="TAMPERED">Detector tamper</option>
+				<option value="WIFI_STATUS">Wifi status</option>
+				<option value="BATTERY_STATUS">Battery status</option>
+				<option value="DETECTION_CHAMBER_STATUS">Detection chamber status</option>
+				<option value="SOUND_TEST">Sound test</option>
+				<option value="NEW_DEVICE">A device has been added</option>
+				<option value="CO_DETECTED">Carbon Monoxide detection</option>
 			</options>
 		</state>
 	</channel-type>
@@ -359,6 +397,23 @@
 				<option value="MOVEMENT_HUMAN">Human seen</option>
 				<option value="MOVEMENT_VEHICLE">Car seen</option>
 				<option value="MOVEMENT_ANIMAL">Animal seen</option>
+				<option value="SOUND_TEST_OK">Alarm test successful</option>
+				<option value="SOUND_TEST_ERROR">Alarm test failed</option>
+				<option value="DETECTOR_READY">Detector installed</option>
+				<option value="DETECTOR_TAMPERED">Detector tampered</option>
+				<option value="DETECTION_CHAMBER_CLEAN">Detection chamber clean</option>
+				<option value="DETECTION_CHAMBER_DIRTY">Detection chamber dusty</option>
+				<option value="BATTERY_LOW">Battery low</option>
+				<option value="BATTERY_VERY_LOW">Battery very low</option>
+				<option value="SMOKE_CLEARED">Smoke cleared</option>
+				<option value="SMOKE_DETECTED">Smoke detected</option>
+				<option value="HUSH_ACTIVATED">Smoke detection activated</option>
+				<option value="HUSH_DEACTIVATED">Smoke detection deactivated</option>
+				<option value="WIFI_STATUS_OK">Wi-Fi status ok</option>
+				<option value="WIFI_STATUS_ERROR">Wi-Fi status error</option>
+				<option value="CO_OK">Carbon Monoxide OK</option>
+				<option value="CO_PRE_ALARM">Carbon Monoxide Pre-alarm</option>
+				<option value="CO_ALARM">Carbon Monoxide alarrm</option>
 			</options>
 		</state>
 	</channel-type>
@@ -375,6 +430,7 @@
 				<option value="MOVEMENT"/>
 				<option value="HUMAN"/>
 				<option value="ANIMAL"/>
+				<option value="VEHICLE"/>
 				<option value="NEW_MODULE"/>
 				<option value="MODULE_CONNECT"/>
 				<option value="MODULE_DISCONNECT"/>
@@ -387,6 +443,10 @@
 				<option value="BOOT"/>
 				<option value="SD"/>
 				<option value="ALIM"/>
+				<option value="ACCEPTED_CALL"/>
+				<option value="INCOMING_CALL"/>
+				<option value="RTC"/>
+				<option value="MISSED_CALL"/>
 			</options>
 		</event>
 	</channel-type>

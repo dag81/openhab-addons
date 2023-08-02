@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -12,10 +12,7 @@
  */
 package org.openhab.binding.netatmo.internal.config;
 
-import java.util.Set;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.FeatureArea;
 
 /**
  * The {@link BindingConfiguration} is responsible for holding configuration of the binding itself.
@@ -24,11 +21,9 @@ import org.openhab.binding.netatmo.internal.api.data.NetatmoConstants.FeatureAre
  */
 @NonNullByDefault
 public class BindingConfiguration {
-    public Set<FeatureArea> features = Set.of();
     public boolean readFriends = false;
 
     public void update(BindingConfiguration newConfig) {
-        this.features = newConfig.features;
         this.readFriends = newConfig.readFriends;
     }
 }

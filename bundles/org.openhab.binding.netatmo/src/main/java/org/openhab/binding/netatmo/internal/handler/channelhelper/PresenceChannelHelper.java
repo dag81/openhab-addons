@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -15,12 +15,16 @@ package org.openhab.binding.netatmo.internal.handler.channelhelper;
 import static org.openhab.binding.netatmo.internal.NetatmoBindingConstants.*;
 import static org.openhab.binding.netatmo.internal.utils.ChannelTypeUtils.toStringType;
 
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.netatmo.internal.api.dto.HomeStatusModule;
 import org.openhab.binding.netatmo.internal.api.dto.NAThing;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.types.State;
+import org.openhab.core.types.UnDefType;
 
 /**
  * The {@link PresenceChannelHelper} handles specific channels of Presence external cameras
@@ -29,20 +33,29 @@ import org.openhab.core.types.State;
  *
  */
 @NonNullByDefault
-public class PresenceChannelHelper extends ChannelHelper {
-    public PresenceChannelHelper() {
-        super(GROUP_PRESENCE);
+public class PresenceChannelHelper extends CameraChannelHelper {
+
+    public PresenceChannelHelper(Set<String> providedGroups) {
+        super(providedGroups);
     }
 
     @Override
     protected @Nullable State internalGetProperty(String channelId, NAThing naThing, Configuration config) {
-        if (naThing instanceof HomeStatusModule) {
-            HomeStatusModule camera = (HomeStatusModule) naThing;
+        if (naThing instanceof HomeStatusModule presence) {
             switch (channelId) {
                 case CHANNEL_FLOODLIGHT:
-                    return toStringType(camera.getFloodlight());
+                    return toStringType(presence.getFloodlight());
+                case CHANNEL_SIREN:
+                    switch (presence.getSirenStatus()) {
+                        case NO_SOUND:
+                            return OnOffType.OFF;
+                        case SOUND:
+                            return OnOffType.ON;
+                        case UNKNOWN:
+                            return UnDefType.NULL;
+                    }
             }
         }
-        return null;
+        return super.internalGetProperty(channelId, naThing, config);
     }
 }

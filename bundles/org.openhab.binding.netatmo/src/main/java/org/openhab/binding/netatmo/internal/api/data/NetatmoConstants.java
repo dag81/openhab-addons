@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -17,6 +17,7 @@ import static org.openhab.core.library.CoreItemFactory.*;
 import static org.openhab.core.library.unit.MetricPrefix.*;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,10 +81,10 @@ public class NetatmoConstants {
         INSIDE_TEMPERATURE(0, 50, 0.3, SIUnits.CELSIUS, "temp", "measure", true),
         OUTSIDE_TEMPERATURE(-40, 65, 0.3, SIUnits.CELSIUS, "temp", "measure", true),
         HEAT_INDEX(-40, 65, 1, SIUnits.CELSIUS, "", "", false),
-        PRESSURE(260, 1260, 1, HECTO(SIUnits.PASCAL), "pressure", "measure", true),
+        PRESSURE(260, 1260, 0.1, HECTO(SIUnits.PASCAL), "pressure", "measure", true),
         CO2(0, 5000, 50, Units.PARTS_PER_MILLION, "co2", "measure", true),
         NOISE(35, 120, 1, Units.DECIBEL, "noise", "measure", true),
-        RAIN_QUANTITY(0, 150, 0.1, MILLI(SIUnits.METRE), "sum_rain", "sum_rain", false),
+        RAIN_QUANTITY(0, Double.MAX_VALUE, 0.1, MILLI(SIUnits.METRE), "sum_rain", "sum_rain", false),
         RAIN_INTENSITY(0, 150, 0.1, Units.MILLIMETRE_PER_HOUR, "", "", false),
         WIND_SPEED(0, 160, 1.8, SIUnits.KILOMETRE_PER_HOUR, "", "", false),
         WIND_ANGLE(0, 360, 5, Units.DEGREE_ANGLE, "", "", false),
@@ -106,47 +107,63 @@ public class NetatmoConstants {
                         new MeasureChannelDetails(confFragment, String.join(":", NUMBER, dimension),
                                 String.format("%%.%df %s", measureDefinition.scale, UnitUtils.UNIT_PLACEHOLDER)));
                 if (canScale) {
-                    channels.put(String.join("-", apiDescriptor, GROUP_TIMESTAMP),
-                            new MeasureChannelDetails(GROUP_TIMESTAMP, DATETIME, "%1$tA, %1$td.%1$tm. %1$tH:%1$tM"));
+                    channels.put(String.join("-", apiDescriptor, GROUP_TIMESTAMP), new MeasureChannelDetails(
+                            GROUP_TIMESTAMP, DATETIME, "@text/extensible-channel-type.timestamp.pattern"));
                 }
             }
         }
     }
 
+    // Content types
+    public static final String CONTENT_APP_JSON = "application/json;charset=utf-8";
+    public static final String CONTENT_APP_FORM = "application/x-www-form-urlencoded;charset=UTF-8";
+
     // Netatmo API urls
     public static final String URL_API = "https://api.netatmo.com/";
-    public static final String URL_APP = "https://app.netatmo.net/";
-    public static final String PATH_OAUTH = "oauth2/token";
+    public static final String PATH_OAUTH = "oauth2";
+    public static final String SUB_PATH_TOKEN = "token";
+    public static final String SUB_PATH_AUTHORIZE = "authorize";
     public static final String PATH_API = "api";
     public static final String PATH_COMMAND = "command";
+    public static final String PATH_STATE = "setstate";
     public static final String SUB_PATH_PERSON_AWAY = "setpersonsaway";
     public static final String SUB_PATH_PERSON_HOME = "setpersonshome";
     public static final String SUB_PATH_HOMES_DATA = "homesdata";
-    public static final String SUB_PATH_ADDWEBHOOK = "addwebhook";
-    public static final String SUB_PATH_DROPWEBHOOK = "dropwebhook";
-    public static final String SUB_PATH_SETROOMTHERMPOINT = "setroomthermpoint";
-    public static final String SUB_PATH_SETTHERMMODE = "setthermmode";
-    public static final String SUB_PATH_SWITCHSCHEDULE = "switchschedule";
-    public static final String SUB_PATH_GETSTATION = "getstationsdata";
-    public static final String SUB_PATH_GETMEASURE = "getmeasure";
+    public static final String SUB_PATH_ADD_WEBHOOK = "addwebhook";
+    public static final String SUB_PATH_DROP_WEBHOOK = "dropwebhook";
+    public static final String SUB_PATH_SET_ROOM_THERMPOINT = "setroomthermpoint";
+    public static final String SUB_PATH_SET_THERM_MODE = "setthermmode";
+    public static final String SUB_PATH_SWITCH_SCHEDULE = "switchschedule";
+    public static final String SUB_PATH_GET_STATION = "getstationsdata";
+    public static final String SUB_PATH_GET_MEASURE = "getmeasure";
     public static final String SUB_PATH_HOMESTATUS = "homestatus";
     public static final String SUB_PATH_HOMECOACH = "gethomecoachsdata";
-    public static final String SUB_PATH_GETEVENTS = "getevents";
+    public static final String SUB_PATH_GET_EVENTS = "getevents";
     public static final String SUB_PATH_PING = "ping";
     public static final String SUB_PATH_CHANGESTATUS = "changestatus";
-    public static final String SUB_PATH_FLOODLIGHTSET = "floodlight_set_config";
-    public static final String PARAM_DEVICEID = "device_id";
-    public static final String PARAM_MODULEID = "module_id";
-    public static final String PARAM_HOMEID = "home_id";
-    public static final String PARAM_ROOMID = "room_id";
-    public static final String PARAM_PERSONID = "person_id";
-    public static final String PARAM_SCHEDULEID = "schedule_id";
+    public static final String PARAM_DEVICE_ID = "device_id";
+    public static final String PARAM_MODULE_ID = "module_id";
+    public static final String PARAM_HOME_ID = "home_id";
+    public static final String PARAM_ROOM_ID = "room_id";
+    public static final String PARAM_PERSON_ID = "person_id";
+    public static final String PARAM_EVENT_ID = "event_id";
+    public static final String PARAM_SCHEDULE_ID = "schedule_id";
     public static final String PARAM_OFFSET = "offset";
-    public static final String PARAM_GATEWAYTYPE = "gateway_types";
+    public static final String PARAM_GATEWAY_TYPE = "gateway_types";
     public static final String PARAM_MODE = "mode";
     public static final String PARAM_URL = "url";
     public static final String PARAM_FAVORITES = "get_favorites";
     public static final String PARAM_STATUS = "status";
+    public static final String PARAM_DEVICES_TYPE = "device_types";
+
+    // Payloads
+    public static final String PAYLOAD_FLOODLIGHT = "{\"home\": {\"id\":\"%s\",\"modules\": [ {\"id\":\"%s\",\"floodlight\":\"%s\"} ]}}";
+    public static final String PAYLOAD_SIREN_PRESENCE = "{\"home\": {\"id\":\"%s\",\"modules\": [ {\"id\":\"%s\",\"siren_status\":\"%s\"} ]}}";
+    public static final String PAYLOAD_PERSON_AWAY = "{\"home_id\":\"%s\",\"person_id\":\"%s\"}";
+    public static final String PAYLOAD_PERSON_HOME = "{\"home_id\":\"%s\",\"person_ids\":[\"%s\"]}";
+
+    // Autentication process params
+    public static final String PARAM_ERROR = "error";
 
     // Global variables
     public static final int THERM_MAX_SETPOINT = 30;
@@ -181,38 +198,40 @@ public class NetatmoConstants {
         WRITE_DOORBELL,
         @SerializedName("access_doorbell")
         ACCESS_DOORBELL,
+        @SerializedName("read_carbonmonoxidedetector")
+        READ_CARBONMONOXIDEDETECTOR,
         UNKNOWN;
     }
 
-    private static final Set<Scope> SMOKE = Set.of(Scope.READ_SMOKEDETECTOR);
-    private static final Set<Scope> WELCOME = Set.of(Scope.READ_CAMERA, Scope.WRITE_CAMERA, Scope.ACCESS_CAMERA);
-    private static final Set<Scope> DOORBELL = Set.of(Scope.READ_DOORBELL, Scope.WRITE_DOORBELL, Scope.ACCESS_DOORBELL);
-    private static final Set<Scope> PRESENCE = Set.of(Scope.READ_PRESENCE, Scope.WRITE_PRESENCE, Scope.ACCESS_PRESENCE);
+    private static final Scope[] SMOKE_SCOPES = { Scope.READ_SMOKEDETECTOR };
+    private static final Scope[] CARBON_MONOXIDE_SCOPES = { Scope.READ_CARBONMONOXIDEDETECTOR };
+    private static final Scope[] AIR_CARE_SCOPES = { Scope.READ_HOMECOACH };
+    private static final Scope[] WEATHER_SCOPES = { Scope.READ_STATION };
+    private static final Scope[] THERMOSTAT_SCOPES = { Scope.READ_THERMOSTAT, Scope.WRITE_THERMOSTAT };
+    private static final Scope[] WELCOME_SCOPES = { Scope.READ_CAMERA, Scope.WRITE_CAMERA, Scope.ACCESS_CAMERA };
+    private static final Scope[] DOORBELL_SCOPES = { Scope.READ_DOORBELL, Scope.WRITE_DOORBELL, Scope.ACCESS_DOORBELL };
+    private static final Scope[] PRESENCE_SCOPES = { Scope.READ_PRESENCE, Scope.WRITE_PRESENCE, Scope.ACCESS_PRESENCE };
+
+    public static enum FeatureArea {
+        AIR_CARE(AIR_CARE_SCOPES),
+        WEATHER(WEATHER_SCOPES),
+        ENERGY(THERMOSTAT_SCOPES),
+        SECURITY(WELCOME_SCOPES, PRESENCE_SCOPES, SMOKE_SCOPES, DOORBELL_SCOPES, CARBON_MONOXIDE_SCOPES),
+        NONE();
+
+        public static String ALL_SCOPES = EnumSet.allOf(FeatureArea.class).stream().map(fa -> fa.scopes)
+                .flatMap(Set::stream).map(s -> s.name().toLowerCase()).collect(Collectors.joining(" "));
+
+        public final Set<Scope> scopes;
+
+        FeatureArea(Scope[]... scopeArrays) {
+            this.scopes = Stream.of(scopeArrays).flatMap(Arrays::stream).collect(Collectors.toSet());
+        }
+    }
 
     // Radio signal quality thresholds
     static final int[] WIFI_SIGNAL_LEVELS = new int[] { 99, 84, 69, 54 }; // Resp : bad, average, good, full
     static final int[] RADIO_SIGNAL_LEVELS = new int[] { 90, 80, 70, 60 }; // Resp : low, medium, high, full
-
-    public static enum FeatureArea {
-        AIR_CARE(Scope.READ_HOMECOACH),
-        WEATHER(Scope.READ_STATION),
-        ENERGY(Scope.READ_THERMOSTAT, Scope.WRITE_THERMOSTAT),
-        SECURITY(Stream.of(WELCOME, PRESENCE, SMOKE, DOORBELL).flatMap(Set::stream).toArray(Scope[]::new)),
-        NONE();
-
-        public static final Set<FeatureArea> AS_SET = EnumSet.allOf(FeatureArea.class);
-
-        public static String toScopeString(Set<FeatureArea> featureSet) {
-            return featureSet.stream().map(fa -> fa.scopes).flatMap(Set::stream).map(s -> s.name().toLowerCase())
-                    .collect(Collectors.joining(" "));
-        }
-
-        public final Set<Scope> scopes;
-
-        FeatureArea(Scope... scopes) {
-            this.scopes = Set.of(scopes);
-        }
-    }
 
     // Thermostat definitions
     public static enum SetpointMode {
@@ -328,6 +347,20 @@ public class NetatmoConstants {
         @SerializedName("2")
         ALIM_CORRECT_POWER,
         UNKNOWN;
+    }
+
+    public enum SirenStatus {
+        SOUND,
+        NO_SOUND,
+        UNKNOWN;
+
+        public static SirenStatus get(String value) {
+            try {
+                return valueOf(value.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return UNKNOWN;
+            }
+        }
     }
 
     public enum BatteryState {

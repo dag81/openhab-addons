@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2022 Contributors to the openHAB project
+ * Copyright (c) 2010-2023 Contributors to the openHAB project
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
@@ -16,10 +16,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.netatmo.internal.handler.ApiBridgeHandler;
 import org.openhab.binding.netatmo.internal.handler.CommonInterface;
 import org.openhab.binding.netatmo.internal.handler.channelhelper.ChannelHelper;
 import org.openhab.binding.netatmo.internal.handler.channelhelper.EventChannelHelper;
 import org.openhab.binding.netatmo.internal.providers.NetatmoDescriptionProvider;
+import org.openhab.binding.netatmo.internal.servlet.WebhookServlet;
 
 /**
  * {@link HomeSecurityThingCapability} is the ancestor of capabilities hosted by a security home
@@ -33,8 +35,9 @@ public class HomeSecurityThingCapability extends Capability {
     protected final NetatmoDescriptionProvider descriptionProvider;
     protected final EventChannelHelper eventHelper;
 
-    protected Optional<SecurityCapability> securityCapability = Optional.empty();
-    protected Optional<HomeCapability> homeCapability = Optional.empty();
+    private Optional<WebhookServlet> webhook = Optional.empty();
+    private Optional<SecurityCapability> securityCapability = Optional.empty();
+    private Optional<HomeCapability> homeCapability = Optional.empty();
 
     public HomeSecurityThingCapability(CommonInterface handler, NetatmoDescriptionProvider descriptionProvider,
             List<ChannelHelper> channelHelpers) {
@@ -46,10 +49,28 @@ public class HomeSecurityThingCapability extends Capability {
         eventHelper.setModuleType(moduleType);
     }
 
+    protected Optional<SecurityCapability> getSecurityCapability() {
+        if (securityCapability.isEmpty()) {
+            securityCapability = handler.getHomeCapability(SecurityCapability.class);
+            ApiBridgeHandler accountHandler = handler.getAccountHandler();
+            if (accountHandler != null) {
+                webhook = accountHandler.getWebHookServlet();
+                webhook.ifPresent(servlet -> servlet.registerDataListener(handler.getId(), this));
+            }
+        }
+        return securityCapability;
+    }
+
+    protected Optional<HomeCapability> getHomeCapability() {
+        if (homeCapability.isEmpty()) {
+            homeCapability = handler.getHomeCapability(HomeCapability.class);
+        }
+        return homeCapability;
+    }
+
     @Override
-    public void initialize() {
-        super.initialize();
-        securityCapability = handler.getHomeCapability(SecurityCapability.class);
-        homeCapability = handler.getHomeCapability(HomeCapability.class);
+    public void dispose() {
+        webhook.ifPresent(servlet -> servlet.unregisterDataListener(handler.getId()));
+        super.dispose();
     }
 }

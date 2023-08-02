@@ -4,42 +4,46 @@ Binding to retrieve information via the Groupe PSA Web API for cars from Opel, P
 
 ## Supported Things
 
-bridge - Groupe PSA Web Api Bridge: The Thing to auto discover your cars
+´bridge´ - Groupe PSA Web Api Bridge: The Thing to auto discover your cars.
 
-vehicle - Groupe PSA Car: The actual car thing.
+´vehicle´ - Groupe PSA Car: The actual car Thing.
 
 ## Discovery
 
-Use the "Groupe PSA Web Api bridge" to auto discover your cars. You need to select the brand for the bridge binding and only cars for the brand will be auto discovered. If you need to add for multiple brands or multiple different users, add multiple bridges.
+Use the "Groupe PSA Web Api bridge" to auto discover your cars.
+You need to select the brand for the bridge binding and only cars for the brand will be auto discovered.
+If you need to add for multiple brands or multiple different users, add multiple bridges.
 
 ## Bridge Configuration
 
-You need to select a brand and enter the User Name and Password.
-The Polling interval (in minutes) determines how often the API will polled for new cars.
-The Client ID and Client Secret should not need to be updated. (However you can register your own app via https://developer.groupe-psa.com/inc/ and use this client information if you wish.)
+You need to select a brand and enter the user name and password.
+The Polling Interval (in minutes) determines how often the API will be polled for new cars.
+The Client ID and Client Secret should not need to be updated.
+(However you can register your own app via <https://developer.groupe-psa.com/inc/> and use this client information if you wish.)
 
 ### parameters
 
 | Property        | Default | Required | Description                                                                                                                                             |
 | --------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| vendor          | None    | Yes      | The brand of the car (PEUGEOT, CITROEN, DS, OPEL or VAUXHALL)                                                                                           |
-| userName        | None    | Yes      | The user name for the mypeugot/mycitroen/myds/myopel/myvauxhall website or app                                                                          |
-| password        | None    | Yes      | The password for the given user                                                                                                                         |
-| pollingInterval | 60      | No       | The Polling interval (in minutes) determines how often the available vehicles are queried                                                               |
-| clientId        |         | Yes      | The client ID for API access: can normally left at the default value. (see: https://developer.groupe-psa.io/webapi/b2c/quickstart/connect/#article)     |
-| clientSecret    |         | Yes      | The client secret for API access: can normally left at the default value. (see: https://developer.groupe-psa.io/webapi/b2c/quickstart/connect/#article) |
+| vendor          | None    | Yes      | The brand of the car (PEUGEOT, CITROEN, DS, OPEL or VAUXHALL).                                                                                          |
+| userName        | None    | Yes      | The user name for the mypeugot/mycitroen/myds/myopel/myvauxhall website or app.                                                                         |
+| password        | None    | Yes      | The password for the given user.                                                                                                                        |
+| pollingInterval | 60      | No       | The Polling Interval (in minutes) determines how often the available vehicles are queried.                                                              |
+| clientId        |         | Yes      | The Client ID for API access: can normally left at the default value. (see: <https://developer.groupe-psa.io/webapi/b2c/quickstart/connect/#article>)     |
+| clientSecret    |         | Yes      | The Client Secret for API access: can normally left at the default value. (see: <https://developer.groupe-psa.io/webapi/b2c/quickstart/connect/#article>) |
 
 ## Vehicle Configuration
 
-Normally the vehicles will be autodiscovered. The Polling Interval and Online Timeout can be adjusted.
+Normally the vehicles will be autodiscovered.
+The Polling Interval and Online Timeout can be adjusted.
 
 ### parameters
 
-| Property        | Default | Required | Description                                                                                      |
-| --------------- | ------- | -------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| id              | None    | Yes      | Vehicle API ID                                                                                   | The ID is the vehicle API ID (not equal to the VIN), which is autodiscoverd by the bridge. |
-| pollingInterval | 5       | No       | The Polling interval (in minutes) determines how often the car is polled for updated information |
-| onlineInterval  | 15      | No       | The Online Timeout (in minutes) determines when the car is deemed to be offline.                 |
+| Property        | Default | Required | Description                                                                                       |                                                                                            |
+|-----------------|---------|----------|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| id              | None    | Yes      | Vehicle API ID.                                                                                   | The ID is the vehicle API ID (not equal to the VIN), which is autodiscoverd by the bridge. |
+| pollingInterval | 5       | No       | The Polling Interval (in minutes) determines how often the car is polled for updated information. |                                                                                            |
+| onlineInterval  | 15      | No       | The Online Timeout (in minutes) determines when the car is deemed to be offline.                  |                                                                                            |
 
 ## Channels
 
@@ -66,7 +70,7 @@ Normally the vehicles will be autodiscovered. The Polling Interval and Online Ti
 | emergency               | String                    | Emergency call status                            |
 | service                 | String                    | Service Type                                     |
 | preconditioning         | String                    | Air conditioning status                          |
-| preconditioningFailure  | String                    | Airr conditioning failure cause                  |
+| preconditioningFailure  | String                    | Air conditioning failure cause                   |
 | level                   | Number:Dimensionless      | Fuel level                                       |
 | autonomy                | Number:Length             | Remaining distance                               |
 | consumption             | Number:VolumetricFlowRate | Fuel consumption                                 |
@@ -81,13 +85,13 @@ Normally the vehicles will be autodiscovered. The Polling Interval and Online Ti
 | chargingRemainingTime   | Number:Time               | Time remaining till charged                      |
 | chargingNextDelayedTime | Number:Time               | Time till the next charging starts               |
 
-Further documentation can be found at: https://developer.groupe-psa.io/webapi/b2c/api-reference/specification/#article
+Further documentation can be found at: <https://developer.groupe-psa.io/webapi/b2c/api-reference/specification/#article>
 
 ## Full Example
 
 ### Things file
 
-```
+```java
 Bridge groupepsa:bridge:opel "Auto Interface" [
     pollingInterval=60,
     userName="anonymous@anonymous.email",
@@ -107,7 +111,7 @@ Bridge groupepsa:bridge:opel "Auto Interface" [
 
 ### Items file
 
-```
+```java
 Group Auto
 
 Number:ElectricCurrent Auto_Aux_Current "Auxillliary Battery Current [%.1f %unit%]" (Auto) ["Measurement","Current"] {channel="groupepsa:vehicle:opel:zafira:battery#current"}
