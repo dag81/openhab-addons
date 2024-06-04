@@ -17,32 +17,34 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link HandshakeReq} is a handshake from the Gateway.
+ * The {@link GatewayEndDevListReq} is a reusable frame used for multiple commands where a device endpoint list is included.
  *
- * @provides App: Gateway ID, Firmware revision, Registered / Addded Endpoint Device ID List
- * @response Gw: Expects response of HandshakeResp, to inform the Gateway of the current local Date and Time
+ * @provides: Endpoint Device ID List
  *
  * @author David Goodyear - Initial contribution
  */
 @NonNullByDefault
-public class HandshakeReq extends GatewayEndDevListReq {
+public class GatewayEndDevListReq extends TLGatewayFrame {
 
-    public HandshakeReq() {
+    public GatewayEndDevListReq() {
     }
 
     /**
-     * Defines the firmware version identifier.
+     * Defines the endpoint devices added / registered to the Gateway.
+     * Limited to the first 16 digits and letters of the Device ID
      */
-    @SerializedName("ver")
-    public String version = EMPTY_STRING;
+    @SerializedName("end_dev")
+    public String[] endDevices = EMPTY_STRING_ARRAY;
 
     public boolean isValid() {
         if (!super.isValid())
             return false;
 
-        if (version.length() == 0)
-            return false;
-
+        for (String ed : endDevices) {
+            if (!deviceIdPattern.matcher(ed).matches()) {
+                return false;
+            }
+        }
         return true;
     }
 }
