@@ -41,6 +41,20 @@ public class GatewayDeviceResponse extends TLGatewayFrame {
         return returnValueDesc[returnValue];
     }
 
+    public boolean isSuccess() {
+        return returnValue == 0;
+    }
+
+    public boolean isRetryableError() {
+        switch (returnValue) {
+            case 7: // Conflict with watering plan
+            case 6: // Gateway internal error
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public String[] returnValueDesc = new String[] { "Success", "Message format error", "CMD message not supported",
             "Gateway ID not matched", "End device ID error", "End device ID not found", "Gateway internal error",
             "Conflict with watering plan", "Gateway busy", "Bad parameter in message" };
