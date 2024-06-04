@@ -17,35 +17,31 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link GatewayEndDevListReq} is a reusable frame used for multiple commands where a device endpoint list is
- * included.
- *
- * @provides: Endpoint Device ID List
+ * The {@link EndpointDeviceResponse} defines the response from the Gateway which includes
+ * the targetted endpoint device ID.
  *
  * @author David Goodyear - Initial contribution
  */
 @NonNullByDefault
-public class GatewayEndDevListReq extends TLGatewayFrame {
+public class EndpointDeviceResponse extends GatewayDeviceResponse {
 
-    public GatewayEndDevListReq() {
+    public EndpointDeviceResponse() {
     }
 
     /**
-     * Defines the endpoint devices added / registered to the Gateway.
-     * Limited to the first 16 digits and letters of the Device ID
+     * Defines the Endpoint Device ID the return value is for
      */
-    @SerializedName("end_dev")
-    public String[] endDevices = EMPTY_STRING_ARRAY;
+    @SerializedName("dev_id")
+    public String deviceId = EMPTY_STRING;
 
     public boolean isValid() {
         if (!super.isValid())
             return false;
 
-        for (String ed : endDevices) {
-            if (!deviceIdPattern.matcher(ed).matches()) {
-                return false;
-            }
+        if (!deviceIdPattern.matcher(deviceId).matches()) {
+            return false;
         }
+
         return true;
     }
 }
