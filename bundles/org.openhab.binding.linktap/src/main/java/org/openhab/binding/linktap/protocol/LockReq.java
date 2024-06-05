@@ -22,54 +22,39 @@ import com.google.gson.annotations.SerializedName;
  * @author David Goodyear - Initial contribution
  */
 @NonNullByDefault
-public class DismissAlertReq extends DeviceCmdReq {
+public class LockReq extends DeviceCmdReq {
 
-    public DismissAlertReq() {
+    public LockReq() {
     }
 
     /**
-     * Defines the alert type the dismiss is for.
+     * Defines the lock type to reqest
      */
-    @SerializedName("alert")
-    public int alert = DEFAULT_INT;
+    @SerializedName("lock")
+    public int lock = DEFAULT_INT;
 
     public boolean isValid() {
         if (!super.isValid())
             return false;
 
-        if (alert < ALERT_TYPES_ALL || alert > ALERT_UNEXPECTED_LOW_FLOW)
+        if (lock < LOCK_UNLOCKED || lock > LOCK_FULL)
             return false;
 
         return true;
     }
 
     /**
-     * Alert - 0. All types of alert
+     * Lock - 0. Device is unlocked
      */
-    public static int ALERT_TYPES_ALL = 0;
+    public static int LOCK_UNLOCKED = 0;
 
     /**
-     * Alert - 1. Device fall alert
+     * Lock - 1. Partially locked
      */
-    public static int ALERT_DEVICE_FALL = 1;
+    public static int LOCK_PARTIALLY = 1;
 
     /**
-     * Alert - 2. Valve shutdown failure alert
+     * Lock - 2. Completely locked
      */
-    public static int ALERT_VALVE_SHUTDOWN_FAIL = 2;
-
-    /**
-     * Alert - 3. Water cut-off alert
-     */
-    public static int ALERT_WATER_CUTOFF = 3;
-
-    /**
-     * Alert - 4. Unusually high flow alert
-     */
-    public static int ALERT_UNEXPECTED_HIGH_FLOW = 4;
-
-    /**
-     * Alert - 5. Unusually low flow alert
-     */
-    public static int ALERT_UNEXPECTED_LOW_FLOW = 5;
+    public static int LOCK_FULL = 2;
 }
