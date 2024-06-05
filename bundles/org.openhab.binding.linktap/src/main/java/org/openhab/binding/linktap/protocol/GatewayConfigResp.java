@@ -65,3 +65,4 @@ public class GatewayConfigResp extends HandshakeReq {
      * Unit Volume - Unit tag for litres
      */
     public static final String UNIT_VOL_LITRES = "L";
+}
