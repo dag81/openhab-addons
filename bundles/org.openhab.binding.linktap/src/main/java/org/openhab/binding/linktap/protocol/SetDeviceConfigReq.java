@@ -43,6 +43,14 @@ public class SetDeviceConfigReq extends DeviceCmdReq {
         if (!super.isValid())
             return false;
 
+        switch (tag) {
+            case CONFIG_VOLUME_LIMIT:
+            case CONFIG_DURATION_LIMIT:
+                break;
+            default:
+                return false;
+        }
+
         return true;
     }
 
