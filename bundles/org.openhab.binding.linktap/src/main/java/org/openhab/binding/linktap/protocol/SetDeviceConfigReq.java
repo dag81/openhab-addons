@@ -45,4 +45,14 @@ public class SetDeviceConfigReq extends DeviceCmdReq {
 
         return true;
     }
+
+    /**
+     * Config - Water Volume Limit
+     */
+    public static String CONFIG_VOLUME_LIMIT = "volume_limit";
+
+    /**
+     * Config - Time Duration Limit
+     */
+    public static String CONFIG_DURATION_LIMIT = "total_duration";
 }
