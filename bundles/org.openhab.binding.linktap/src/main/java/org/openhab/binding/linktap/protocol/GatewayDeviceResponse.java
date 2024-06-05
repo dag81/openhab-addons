@@ -55,9 +55,9 @@ public class GatewayDeviceResponse extends TLGatewayFrame {
         }
     }
 
-    public String[] returnValueDesc = new String[] { "Success", "Message format error", "CMD message not supported",
-            "Gateway ID not matched", "End device ID error", "End device ID not found", "Gateway internal error",
-            "Conflict with watering plan", "Gateway busy", "Bad parameter in message" };
+    public static final String[] returnValueDesc = new String[] { "Success", "Message format error",
+            "CMD message not supported", "Gateway ID not matched", "End device ID error", "End device ID not found",
+            "Gateway internal error", "Conflict with watering plan", "Gateway busy", "Bad parameter in message" };
 
     public boolean isValid() {
         if (!super.isValid())
