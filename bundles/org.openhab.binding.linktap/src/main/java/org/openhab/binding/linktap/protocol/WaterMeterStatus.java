@@ -31,7 +31,7 @@ import java.util.List;
  * @author David Goodyear - Initial contribution
  */
 @NonNullByDefault
-public class WaterMeterStatus extends TLGatewayFrame {
+public class WaterMeterStatus extends GatewayDeviceResponse {
 
     public WaterMeterStatus() {
     }

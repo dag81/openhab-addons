@@ -17,11 +17,16 @@ import org.junit.Test;
 import org.openhab.binding.linktap.internal.LinkTapBindingConstants;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_UPDATE_WATER_TIMER_STATUS;
+import static org.openhab.binding.linktap.protocol.TLGatewayFrame.*;
 
 /**
  * Command 3: Water Timer Status Update Notification
  * Flow 1 --> GW->Broker->App: Notification that there is a update to one or more water timer's
+ *   Default format --> object's within an array
+ *   Optional format --> object not wrapped within an array
+ * Flow 2 --> App->Broker->GW: Request Water Timer Status
+ *
+ * (ret is only provided in case of an error so -1 would be the same as if 0 was provided)
  */
 @NonNullByDefault
 public class Command3Test {
@@ -29,7 +34,9 @@ public class Command3Test {
     /**
      * Command 3: Water Timer Status Update Notification
      * Flow 1 --> GW->Broker->App: Notification that there is a update to one or more water timer's
-     * Default format --> object's within an array
+     *   Default format --> object's within an array
+     *   Optional format --> object not wrapped within an array
+     * Flow 2 --> App->Broker->GW: Request Water Timer Status
      */
     @Test
     public void NotificationTimerUpdateRequest1Decoding() {
@@ -58,6 +65,7 @@ public class Command3Test {
         assertEquals(0,decoded.deviceStatuses.get(0).remainDuration);
         assertEquals(0,decoded.deviceStatuses.get(0).speed);
         assertEquals(0,decoded.deviceStatuses.get(0).volume);
+        assertEquals(-1,decoded.returnValue); // Only given in case of error
     }
 
     /**
@@ -91,5 +99,36 @@ public class Command3Test {
         assertEquals(0,decoded.deviceStatuses.get(0).remainDuration);
         assertEquals(0,decoded.deviceStatuses.get(0).speed);
         assertEquals(0,decoded.deviceStatuses.get(0).volume);
+        assertEquals(-1,decoded.returnValue); // Only given in case of error
+    }
+
+    /**
+     * Command 3: Water Timer Status Update Notification
+     * Flow 2 --> App->Broker->GW: Request Water Timer Status
+     */
+    @Test
+    public void RequestWaterMeterStatusGenerationTest() {
+        DeviceCmdReq req = new DeviceCmdReq();
+        req.gatewayId = "CCCCDDDDEEEEFFFF";
+        req.deviceId = "1111222233334444";
+        req.command = CMD_UPDATE_WATER_TIMER_STATUS;
+
+        String encoded = LinkTapBindingConstants.GSON.toJson(req);
+
+        assertEquals("{\"dev_id\":\"1111222233334444\",\"cmd\":3,\"gw_id\":\"CCCCDDDDEEEEFFFF\"}",
+                encoded);
+    }
+
+    /**
+     * Command 3: Water Timer Status Update Notification
+     * Flow 2 --> App->Broker->GW: Request Water Timer Status
+     */
+    @Test
+    public void RequestWaterMeterStatusErrorResponseDecoding() {
+        final WaterMeterStatus decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":3, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":5\n}",WaterMeterStatus.class);
+
+        assertEquals(CMD_UPDATE_WATER_TIMER_STATUS,decoded.command);
+        assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
+        assertEquals(5,decoded.returnValue);
     }
 }
