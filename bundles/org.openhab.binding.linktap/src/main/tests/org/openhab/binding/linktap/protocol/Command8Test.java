@@ -50,7 +50,7 @@ public class Command8Test {
         forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
-        forecastReply.setValidDuration(60);
+        forecastReply.validDuration = 60;
 
         String encoded = LinkTapBindingConstants.GSON.toJson(forecastReply);
 
@@ -69,7 +69,7 @@ public class Command8Test {
         forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
-        forecastReply.setValidDuration(60);
+        forecastReply.validDuration = 60;
 
         String encoded = LinkTapBindingConstants.GSON.toJson(forecastReply);
 
