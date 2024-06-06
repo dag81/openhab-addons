@@ -16,45 +16,41 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.Test;
 import org.openhab.binding.linktap.internal.LinkTapBindingConstants;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Command 1: Add / Register Endpoint Device to Gateway
- * Flow 1 --> App->Broker->GW: Add specified water timer to gateway
+ * Command 2: Delete / Unregister Endpoint Device to Gateway
+ * Flow 1 --> App->Broker->GW: Delete specified water timer to gateway
  */
 @NonNullByDefault
-public class Command1Test {
+public class Command2Test {
 
     /**
      * Command 1:
-     * Flow 1 --> App->Broker->GW: Add specified water timer to gateway encoding test
+     * Flow 1 --> App->Broker->GW: Delete specified water timer to gateway encoding test
      */
     @Test
-    public void AddDeviceRequestEncoding() {
+    public void DeleteDeviceRequestEncoding() {
         final GatewayEndDevListReq req = new GatewayEndDevListReq();
-        req.command = 1;
+        req.command = 2;
         req.gatewayId = "CCCCDDDDEEEEFFFF";
-        req.endDevices = new String[] {"11112222333344448888","77778889333366661111"};
+        req.endDevices = new String[] {"1111222233334444","7777888933336666"};
 
         String encoded = LinkTapBindingConstants.GSON.toJson(req);
 
-        assertEquals("{\"end_dev\":[\"11112222333344448888\",\"77778889333366661111\"],\"cmd\":1,\"gw_id\":\"CCCCDDDDEEEEFFFF\"}",
+        assertEquals("{\"end_dev\":[\"1111222233334444\",\"7777888933336666\"],\"cmd\":2,\"gw_id\":\"CCCCDDDDEEEEFFFF\"}",
                 encoded);
     }
 
     /**
-     * Command 1:
-     * Flow 1 --> App->Broker->GW: Add specified water timer to gateway response decoding test
+     * Command 2:
+     * Flow 2 --> App->Broker->GW: Delete specified water timer to gateway response decoding test
      */
     @Test
-    public void AddDeviceRequestResponseDecoding() {
-        final GatewayDeviceResponse decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":1, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":0\n" +
-                "}",GatewayDeviceResponse.class);
+    public void DeleteDeviceRequestResponseDecoding() {
+        final GatewayDeviceResponse decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":2, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":0\n}",GatewayDeviceResponse.class);
 
-        assertEquals(1,decoded.command);
+        assertEquals(2,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals(0,decoded.returnValue);
     }
