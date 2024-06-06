@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_ADD_END_DEVICE;
 
 /**
  * Command 1: Add / Register Endpoint Device to Gateway
@@ -35,7 +36,7 @@ public class Command1Test {
     @Test
     public void AddDeviceRequestEncoding() {
         final GatewayEndDevListReq req = new GatewayEndDevListReq();
-        req.command = 1;
+        req.command = CMD_ADD_END_DEVICE;
         req.gatewayId = "CCCCDDDDEEEEFFFF";
         req.endDevices = new String[] {"11112222333344448888","77778889333366661111"};
 
@@ -54,7 +55,7 @@ public class Command1Test {
         final GatewayDeviceResponse decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":1, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":0\n" +
                 "}",GatewayDeviceResponse.class);
 
-        assertEquals(1,decoded.command);
+        assertEquals(CMD_ADD_END_DEVICE,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals(0,decoded.returnValue);
     }

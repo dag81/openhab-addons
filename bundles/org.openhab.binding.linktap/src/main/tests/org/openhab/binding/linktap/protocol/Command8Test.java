@@ -13,6 +13,7 @@
 package org.openhab.binding.linktap.protocol;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_RAINFALL_DATA;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class Command8Test {
         final TLGatewayFrame decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":8, \"gw_id\":\"CCCCDDDDEEEEFFFF\"\n" +
                 "}",TLGatewayFrame.class);
 
-        assertEquals(8,decoded.command);
+        assertEquals(CMD_RAINFALL_DATA,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
     }
 
@@ -46,7 +47,7 @@ public class Command8Test {
     @Test
     public void RainDataRequestResponseGenerationTest() {
         RainDataForecast forecastReply = new RainDataForecast();
-        forecastReply.command = 8;
+        forecastReply.command = CMD_RAINFALL_DATA;
         forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
@@ -65,7 +66,7 @@ public class Command8Test {
     @Test
     public void RainDataPushGenerationTest() {
         RainDataForecast forecastReply = new RainDataForecast();
-        forecastReply.command = 8;
+        forecastReply.command = CMD_RAINFALL_DATA;
         forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
@@ -86,7 +87,7 @@ public class Command8Test {
         final GatewayDeviceResponse decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":8, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":0\n" +
                 "}",GatewayDeviceResponse.class);
 
-        assertEquals(8,decoded.command);
+        assertEquals(CMD_RAINFALL_DATA,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals(0,decoded.returnValue);
     }

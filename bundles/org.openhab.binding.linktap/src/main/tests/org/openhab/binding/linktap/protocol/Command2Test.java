@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.openhab.binding.linktap.internal.LinkTapBindingConstants;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_REMOVE_END_DEVICE;
 
 /**
  * Command 2: Delete / Unregister Endpoint Device to Gateway
@@ -32,7 +33,7 @@ public class Command2Test {
     @Test
     public void DeleteDeviceRequestEncoding() {
         final GatewayEndDevListReq req = new GatewayEndDevListReq();
-        req.command = 2;
+        req.command = CMD_REMOVE_END_DEVICE;
         req.gatewayId = "CCCCDDDDEEEEFFFF";
         req.endDevices = new String[] {"1111222233334444","7777888933336666"};
 
@@ -50,7 +51,7 @@ public class Command2Test {
     public void DeleteDeviceRequestResponseDecoding() {
         final GatewayDeviceResponse decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":2, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ret\":0\n}",GatewayDeviceResponse.class);
 
-        assertEquals(2,decoded.command);
+        assertEquals(CMD_REMOVE_END_DEVICE,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals(0,decoded.returnValue);
     }

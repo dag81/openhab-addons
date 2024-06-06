@@ -20,6 +20,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_HANDSHAKE;
 
 /**
  * Command 0: Handshake
@@ -36,7 +37,7 @@ public class Command0Test {
     public void HandshakeRequestDecoding() {
         final HandshakeReq decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":0, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ver\":\"G0404172103261024C\", \"end_dev\":[ \"1111222233334444\", \"7777888933336666\", \"2245222233334444\", \"3333999993333555\"\n]\n}",HandshakeReq.class);
 
-        assertEquals(0,decoded.command);
+        assertEquals(CMD_HANDSHAKE,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals("G0404172103261024C",decoded.version);
         assertEquals(4,decoded.endDevices.length);
@@ -53,7 +54,7 @@ public class Command0Test {
     @Test
     public void HandshakeResponseEncoding() {
         HandshakeResp reply = new HandshakeResp();
-        reply.command = 0;
+        reply.command = CMD_HANDSHAKE;
         reply.gatewayId = "CCCCDDDDEEEEFFFF";
         reply.date = "20210501";
         reply.time = "123055";

@@ -16,6 +16,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.regex.Pattern;
+
 /**
  * The {@link GatewayEndDevListReq} is a reusable frame used for multiple commands where a device endpoint list is
  * included.
@@ -26,6 +28,9 @@ import com.google.gson.annotations.SerializedName;
  */
 @NonNullByDefault
 public class GatewayEndDevListReq extends TLGatewayFrame {
+
+    protected final static Pattern fullDeviceIdPattern = Pattern.compile("[a-zA-Z0-9]{20}");
+
 
     public GatewayEndDevListReq() {
     }
@@ -42,8 +47,15 @@ public class GatewayEndDevListReq extends TLGatewayFrame {
             return false;
 
         for (String ed : endDevices) {
-            if (!deviceIdPattern.matcher(ed).matches()) {
-                return false;
+            if (command == CMD_ADD_END_DEVICE) {
+                if (!fullDeviceIdPattern.matcher(ed).matches()) {
+                    return false;
+                }
+            } else {
+                if (!deviceIdPattern.matcher(ed).matches()) {
+                    return false;
+                }
+
             }
         }
         return true;
