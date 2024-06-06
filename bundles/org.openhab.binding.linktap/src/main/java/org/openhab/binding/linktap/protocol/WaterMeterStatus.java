@@ -36,15 +36,22 @@ public class WaterMeterStatus extends GatewayDeviceResponse {
     public WaterMeterStatus() {
     }
 
+    @Override
+    public int getRes() {
+        if (super.getRes() == -1)
+            return 0;
+        return super.getRes();
+    }
+
     public static class DeviceStatusClassTypeAdapter implements JsonDeserializer<List<DeviceStatus>> {
         public @Nullable List<DeviceStatus> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext ctx) {
-            List<DeviceStatus> vals = new ArrayList<DeviceStatus>();
+            List<DeviceStatus> vals = new ArrayList<>();
             if (json.isJsonArray()) {
                 for (JsonElement e : json.getAsJsonArray()) {
-                    vals.add((DeviceStatus) ctx.deserialize(e, DeviceStatus.class));
+                    vals.add(ctx.deserialize(e, DeviceStatus.class));
                 }
             } else if (json.isJsonObject()) {
-                vals.add((DeviceStatus) ctx.deserialize(json, DeviceStatus.class));
+                vals.add(ctx.deserialize(json, DeviceStatus.class));
             } else {
                 throw new RuntimeException("Unexpected JSON type: " + json.getClass());
             }

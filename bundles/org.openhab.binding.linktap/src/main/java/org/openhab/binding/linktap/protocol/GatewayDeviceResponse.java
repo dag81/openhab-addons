@@ -68,4 +68,8 @@ public class GatewayDeviceResponse extends TLGatewayFrame {
 
         return true;
     }
+
+    public int getRes() {
+        return returnValue;
+    }
 }

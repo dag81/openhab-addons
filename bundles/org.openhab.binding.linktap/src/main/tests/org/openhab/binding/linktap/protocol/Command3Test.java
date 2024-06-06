@@ -66,6 +66,7 @@ public class Command3Test {
         assertEquals(0,decoded.deviceStatuses.get(0).speed);
         assertEquals(0,decoded.deviceStatuses.get(0).volume);
         assertEquals(-1,decoded.returnValue); // Only given in case of error
+        assertEquals(0,decoded.getRes());
     }
 
     /**
@@ -100,6 +101,7 @@ public class Command3Test {
         assertEquals(0,decoded.deviceStatuses.get(0).speed);
         assertEquals(0,decoded.deviceStatuses.get(0).volume);
         assertEquals(-1,decoded.returnValue); // Only given in case of error
+        assertEquals(0,decoded.getRes());
     }
 
     /**
@@ -130,5 +132,6 @@ public class Command3Test {
         assertEquals(CMD_UPDATE_WATER_TIMER_STATUS,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
         assertEquals(5,decoded.returnValue);
+        assertEquals(5,decoded.getRes());
     }
 }
