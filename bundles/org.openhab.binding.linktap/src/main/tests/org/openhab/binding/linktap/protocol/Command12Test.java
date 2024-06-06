@@ -58,6 +58,5 @@ public class Command12Test {
         assertEquals("1111222233334444",decoded.deviceId );
         assertEquals(0,decoded.returnValue);
     }
-
-
+    
 }
