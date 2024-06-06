@@ -47,7 +47,7 @@ public class Command11Test {
 
     /**
      * Command 11: Dismiss Alert
-     * Flow 1 --> GW->Broker->App: Dismiss the specified alert type reply
+     * Flow 1 --> App->Broker->GW: Dismiss the specified alert type reply
      */
     @Test
     public void DismissAlertResponseDecoding() {
