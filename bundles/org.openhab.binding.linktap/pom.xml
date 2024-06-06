@@ -13,5 +13,13 @@
   <artifactId>org.openhab.binding.linktap</artifactId>
 
   <name>openHAB Add-ons :: Bundles :: LinkTap Binding</name>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>

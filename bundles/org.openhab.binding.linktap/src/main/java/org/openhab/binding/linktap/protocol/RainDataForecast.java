@@ -32,7 +32,11 @@ public class RainDataForecast extends RainData {
      * Minimum value is 1
      */
     @SerializedName("valid_duration")
-    public int validDuration = DEFAULT_INT;
+    protected int validDuration = DEFAULT_INT;
+
+    public void setValidDuration(int duration){
+        this.validDuration = duration;
+    }
 
     public boolean isValid() {
         if (!super.isValid())

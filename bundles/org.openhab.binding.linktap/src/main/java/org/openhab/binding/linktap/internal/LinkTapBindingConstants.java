@@ -12,6 +12,9 @@
  */
 package org.openhab.binding.linktap.internal;
 
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
 
@@ -23,6 +26,10 @@ import org.openhab.core.thing.ThingTypeUID;
  */
 @NonNullByDefault
 public class LinkTapBindingConstants {
+
+    public static final Gson GSON = new GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .disableHtmlEscaping().create();
 
     private static final String BINDING_ID = "linktap";
 

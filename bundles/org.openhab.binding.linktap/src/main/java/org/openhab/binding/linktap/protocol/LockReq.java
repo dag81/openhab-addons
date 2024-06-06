@@ -17,7 +17,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * The {@link DismissAlertReq} defines the request to dismiss alerts from a given device.
+ * The {@link LockReq} defines the request to dismiss alerts from a given device.
  *
  * @author David Goodyear - Initial contribution
  */

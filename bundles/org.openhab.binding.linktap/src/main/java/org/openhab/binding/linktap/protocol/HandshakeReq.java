@@ -34,7 +34,13 @@ public class HandshakeReq extends GatewayEndDevListReq {
      * Defines the firmware version identifier.
      */
     @SerializedName("ver")
-    public String version = EMPTY_STRING;
+    protected String version = EMPTY_STRING;
+    public String getVersion() {
+        return version;
+    }
+    public void setVersion(final String version) {
+        this.version = version;
+    }
 
     public boolean isValid() {
         if (!super.isValid())
