@@ -16,9 +16,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.junit.Test;
 import org.openhab.binding.linktap.internal.LinkTapBindingConstants;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_NOTIFICATION_WATERING_SKIPPED;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.openhab.binding.linktap.protocol.TLGatewayFrame.CMD_UPDATE_WATER_TIMER_STATUS;
 
 /**
@@ -39,7 +37,27 @@ public class Command3Test {
 
         assertEquals(CMD_UPDATE_WATER_TIMER_STATUS,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
-        assertTrue(false);
+        assertNotNull(decoded.deviceStatuses);
+        assertEquals(1,decoded.deviceStatuses.size());
+        assertEquals("1111222233334444",decoded.deviceStatuses.get(0).deviceId);
+        assertEquals(2,decoded.deviceStatuses.get(0).planMode);
+        assertEquals(3134,decoded.deviceStatuses.get(0).planSerialNo);
+        assertTrue(decoded.deviceStatuses.get(0).isRfLinked);
+        assertFalse(decoded.deviceStatuses.get(0).isFlmLinked);
+        assertFalse(decoded.deviceStatuses.get(0).isBroken);
+        assertFalse(decoded.deviceStatuses.get(0).isCutoff);
+        assertFalse(decoded.deviceStatuses.get(0).isLeak);
+        assertFalse(decoded.deviceStatuses.get(0).isClog);
+        assertEquals(100,decoded.deviceStatuses.get(0).signal);
+        assertEquals(0,decoded.deviceStatuses.get(0).battery);
+        assertEquals(0,decoded.deviceStatuses.get(0).childLock);
+        assertFalse(decoded.deviceStatuses.get(0).isManualMode);
+        assertFalse(decoded.deviceStatuses.get(0).isWatering);
+        assertTrue(decoded.deviceStatuses.get(0).isFinal);
+        assertEquals(0,decoded.deviceStatuses.get(0).totalDuration);
+        assertEquals(0,decoded.deviceStatuses.get(0).remainDuration);
+        assertEquals(0,decoded.deviceStatuses.get(0).speed);
+        assertEquals(0,decoded.deviceStatuses.get(0).volume);
     }
 
     /**
@@ -53,6 +71,25 @@ public class Command3Test {
 
         assertEquals(CMD_UPDATE_WATER_TIMER_STATUS,decoded.command);
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
-        assertTrue(false);
+        assertEquals(1,decoded.deviceStatuses.size());
+        assertEquals("1111222233334444",decoded.deviceStatuses.get(0).deviceId);
+        assertEquals(2,decoded.deviceStatuses.get(0).planMode);
+        assertEquals(3134,decoded.deviceStatuses.get(0).planSerialNo);
+        assertTrue(decoded.deviceStatuses.get(0).isRfLinked);
+        assertFalse(decoded.deviceStatuses.get(0).isFlmLinked);
+        assertFalse(decoded.deviceStatuses.get(0).isBroken);
+        assertFalse(decoded.deviceStatuses.get(0).isCutoff);
+        assertFalse(decoded.deviceStatuses.get(0).isLeak);
+        assertFalse(decoded.deviceStatuses.get(0).isClog);
+        assertEquals(100,decoded.deviceStatuses.get(0).signal);
+        assertEquals(0,decoded.deviceStatuses.get(0).battery);
+        assertEquals(0,decoded.deviceStatuses.get(0).childLock);
+        assertFalse(decoded.deviceStatuses.get(0).isManualMode);
+        assertFalse(decoded.deviceStatuses.get(0).isWatering);
+        assertTrue(decoded.deviceStatuses.get(0).isFinal);
+        assertEquals(0,decoded.deviceStatuses.get(0).totalDuration);
+        assertEquals(0,decoded.deviceStatuses.get(0).remainDuration);
+        assertEquals(0,decoded.deviceStatuses.get(0).speed);
+        assertEquals(0,decoded.deviceStatuses.get(0).volume);
     }
 }

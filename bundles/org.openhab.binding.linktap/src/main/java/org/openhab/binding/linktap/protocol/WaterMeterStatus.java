@@ -12,9 +12,17 @@
  */
 package org.openhab.binding.linktap.protocol;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import com.google.gson.annotations.SerializedName;
+import org.eclipse.jdt.annotation.Nullable;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The {@link DeviceCmdReq} is a payload representing the current status of the
@@ -28,6 +36,27 @@ public class WaterMeterStatus extends TLGatewayFrame {
     public WaterMeterStatus() {
     }
 
+    public static class DeviceStatusClassTypeAdapter implements JsonDeserializer<List<DeviceStatus>> {
+        public @Nullable List<DeviceStatus> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext ctx) {
+            List<DeviceStatus> vals = new ArrayList<DeviceStatus>();
+            if (json.isJsonArray()) {
+                for (JsonElement e : json.getAsJsonArray()) {
+                    vals.add((DeviceStatus) ctx.deserialize(e, DeviceStatus.class));
+                }
+            } else if (json.isJsonObject()) {
+                vals.add((DeviceStatus) ctx.deserialize(json, DeviceStatus.class));
+            } else {
+                throw new RuntimeException("Unexpected JSON type: " + json.getClass());
+            }
+            return vals;
+        }
+    }
+
+    /**
+     * Defines the device stat's for each device
+     */
+    @SerializedName("dev_stat")
+    public List<DeviceStatus> deviceStatuses = new ArrayList<DeviceStatus>();
     public class DeviceStatus implements IPayloadValidator {
         /**
          * Defines the targetted device ID
