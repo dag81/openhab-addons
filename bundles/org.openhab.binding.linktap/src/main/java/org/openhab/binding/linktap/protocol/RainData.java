@@ -31,20 +31,24 @@ public class RainData extends TLGatewayFrame {
      * Defines the past rainfall [0] and future rainfull [1] measurements in mm
      */
     @SerializedName("rain")
-    protected double[] rainfallData = new double[] { 0.0, 0.0 };
+    public double[] rainfallData = new double[] { 0.0, 0.0 };
 
     public void setPastRainfall(final double pastRainMM) {
         rainfallData[0] = pastRainMM;
     }
+
     public double getPastRainfall() {
         return rainfallData[0];
     }
+
     public void setFutureRainfall(final double futureRainMM) {
         rainfallData[1] = futureRainMM;
     }
+
     public double getFutureRainfall() {
         return rainfallData[1];
     }
+
     public boolean isValid() {
         if (!super.isValid())
             return false;

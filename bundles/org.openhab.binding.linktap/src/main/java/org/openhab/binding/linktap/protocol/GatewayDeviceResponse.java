@@ -32,13 +32,7 @@ public class GatewayDeviceResponse extends TLGatewayFrame {
      * Defines the processing result from the gateway
      */
     @SerializedName("ret")
-    protected int returnValue = DEFAULT_INT;
-    public int getReturnValue() {
-        return returnValue;
-    }
-    public void setReturnValue(final int returnValue) {
-        this.returnValue = returnValue;
-    }
+    public int returnValue = DEFAULT_INT;
 
     public String getReturnValueDesc() {
         if (returnValue < 0 || returnValue > returnValueDesc.length - 1)

@@ -34,7 +34,7 @@ public class RainDataForecast extends RainData {
     @SerializedName("valid_duration")
     protected int validDuration = DEFAULT_INT;
 
-    public void setValidDuration(int duration){
+    public void setValidDuration(int duration) {
         this.validDuration = duration;
     }
 

@@ -36,9 +36,7 @@ public class Command8Test {
                 "}",TLGatewayFrame.class);
 
         assertEquals(8,decoded.command);
-        assertEquals(8,decoded.getCommand());
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
-        assertEquals("CCCCDDDDEEEEFFFF",decoded.getGatewayId() );
     }
 
     /**
@@ -48,8 +46,8 @@ public class Command8Test {
     @Test
     public void RainDataRequestResponseGenerationTest() {
         RainDataForecast forecastReply = new RainDataForecast();
-        forecastReply.setCommand(8);
-        forecastReply.setGatewayId("CCCCDDDDEEEEFFFF");
+        forecastReply.command = 8;
+        forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
         forecastReply.setValidDuration(60);
@@ -67,8 +65,8 @@ public class Command8Test {
     @Test
     public void RainDataPushGenerationTest() {
         RainDataForecast forecastReply = new RainDataForecast();
-        forecastReply.setCommand(8);
-        forecastReply.setGatewayId("CCCCDDDDEEEEFFFF");
+        forecastReply.command = 8;
+        forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
         forecastReply.setPastRainfall(2.5);
         forecastReply.setFutureRainfall(6.3);
         forecastReply.setValidDuration(60);
@@ -89,11 +87,8 @@ public class Command8Test {
                 "}",GatewayDeviceResponse.class);
 
         assertEquals(8,decoded.command);
-        assertEquals(8,decoded.getCommand());
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
-        assertEquals("CCCCDDDDEEEEFFFF",decoded.getGatewayId() );
         assertEquals(0,decoded.returnValue);
-        assertEquals(0,decoded.getReturnValue());
     }
 
 

@@ -41,25 +41,14 @@ public class TLGatewayFrame implements IPayloadValidator {
      * Possible values in constants CMD_*
      */
     @SerializedName("cmd")
-    protected int command = DEFAULT_INT;
-    public int getCommand() {
-        return command;
-    }
-    public int setCommand(final int command) {
-        return this.command = command;
-    }
+    public int command = DEFAULT_INT;
+
     /**
      * Defines the gateway identifier.
      * Limited to the first 16 digits and letters of the Gateway ID
      */
     @SerializedName("gw_id")
-    protected String gatewayId = EMPTY_STRING;
-    public String getGatewayId() {
-        return gatewayId;
-    }
-    public String setGatewayId(final String gatewayId) {
-        return this.gatewayId = gatewayId;
-    }
+    public String gatewayId = EMPTY_STRING;
 
     public boolean isValid() {
         if (command < CMD_HANDSHAKE || command > CMD_PAUSE_WATER_PLAN)

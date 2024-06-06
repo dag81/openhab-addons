@@ -37,11 +37,8 @@ public class Command0Test {
         final HandshakeReq decoded = LinkTapBindingConstants.GSON.fromJson("{ \"cmd\":0, \"gw_id\":\"CCCCDDDDEEEEFFFF\", \"ver\":\"G0404172103261024C\", \"end_dev\":[ \"1111222233334444\", \"7777888933336666\", \"2245222233334444\", \"3333999993333555\"\n]\n}",HandshakeReq.class);
 
         assertEquals(0,decoded.command);
-        assertEquals(0,decoded.getCommand());
         assertEquals("CCCCDDDDEEEEFFFF",decoded.gatewayId );
-        assertEquals("CCCCDDDDEEEEFFFF",decoded.getGatewayId() );
         assertEquals("G0404172103261024C",decoded.version);
-        assertEquals("G0404172103261024C",decoded.getVersion());
         assertEquals(4,decoded.endDevices.length);
         assertTrue(Arrays.asList(decoded.endDevices).contains("1111222233334444"));
         assertTrue(Arrays.asList(decoded.endDevices).contains("7777888933336666"));
@@ -56,11 +53,11 @@ public class Command0Test {
     @Test
     public void HandshakeResponseEncoding() {
         HandshakeResp reply = new HandshakeResp();
-        reply.setCommand(0);
-        reply.setGatewayId("CCCCDDDDEEEEFFFF");
-        reply.setDate("20210501");
-        reply.setTime("123055");
-        reply.setWday(6);
+        reply.command = 0;
+        reply.gatewayId = "CCCCDDDDEEEEFFFF";
+        reply.date = "20210501";
+        reply.time = "123055";
+        reply.wday = 6;
 
         String encoded = LinkTapBindingConstants.GSON.toJson(reply);
 

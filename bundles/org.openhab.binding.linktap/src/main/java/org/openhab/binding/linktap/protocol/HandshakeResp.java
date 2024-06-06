@@ -39,34 +39,21 @@ public class HandshakeResp extends TLGatewayFrame {
      * Defines the date in the format YYYYMMDD
      */
     @SerializedName("date")
-    protected String date = EMPTY_STRING;
-    public String getDate() { return date; }
-    public void setDate(final String date) {
-        this.date = date;
-    }
+    public String date = EMPTY_STRING;
+
     /**
      * Defines the time for the GW in the format HHMMSS
      */
     @SerializedName("time")
-    protected String time = EMPTY_STRING;
-    public String getTime() {
-        return time;
-    }
-    public void setTime(final String time) {
-        this.time = time;
-    }
-
+    public String time = EMPTY_STRING;
 
     /**
      * Defines the weekday for the GW
      * 1 represents Monday.... 7 represents Sunday
      */
     @SerializedName("wday")
-    protected int wday = DEFAULT_INT;
-    public int getWday() { return wday; }
-    public void setWday(final int weekdayNo) {
-        this.wday = weekdayNo;
-    }
+    public int wday = DEFAULT_INT;
+
     static final String CUSTOM_PATTERN = "yyyyMMdd";
     static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(CUSTOM_PATTERN);
 

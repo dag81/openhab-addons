@@ -12,11 +12,12 @@
  */
 package org.openhab.binding.linktap.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.core.thing.ThingTypeUID;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.core.thing.ThingTypeUID;
 
 /**
  * The {@link LinkTapBindingConstants} class defines common constants, which are
@@ -28,8 +29,7 @@ import org.openhab.core.thing.ThingTypeUID;
 public class LinkTapBindingConstants {
 
     public static final Gson GSON = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .disableHtmlEscaping().create();
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).disableHtmlEscaping().create();
 
     private static final String BINDING_ID = "linktap";
 
