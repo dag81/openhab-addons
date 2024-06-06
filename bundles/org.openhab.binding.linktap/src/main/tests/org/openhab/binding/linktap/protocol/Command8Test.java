@@ -65,14 +65,14 @@ public class Command8Test {
      */
     @Test
     public void RainDataPushGenerationTest() {
-        RainDataForecast forecastReply = new RainDataForecast();
-        forecastReply.command = CMD_RAINFALL_DATA;
-        forecastReply.gatewayId = "CCCCDDDDEEEEFFFF";
-        forecastReply.setPastRainfall(2.5);
-        forecastReply.setFutureRainfall(6.3);
-        forecastReply.validDuration = 60;
+        RainDataForecast req = new RainDataForecast();
+        req.command = CMD_RAINFALL_DATA;
+        req.gatewayId = "CCCCDDDDEEEEFFFF";
+        req.setPastRainfall(2.5);
+        req.setFutureRainfall(6.3);
+        req.validDuration = 60;
 
-        String encoded = LinkTapBindingConstants.GSON.toJson(forecastReply);
+        String encoded = LinkTapBindingConstants.GSON.toJson(req);
 
         assertEquals("{\"valid_duration\":60,\"rain\":[2.5,6.3],\"cmd\":8,\"gw_id\":\"CCCCDDDDEEEEFFFF\"}",
                 encoded);
