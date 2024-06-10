@@ -12,17 +12,15 @@
  */
 package org.openhab.binding.linktap.internal;
 
-import com.google.gson.reflect.TypeToken;
-import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.linktap.protocol.WaterMeterStatus;
-import org.openhab.core.thing.ThingTypeUID;
-
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import java.lang.reflect.Type;
 import java.util.List;
+
+import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.linktap.protocol.frames.WaterMeterStatus;
+import org.openhab.core.thing.ThingTypeUID;
+
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * The {@link LinkTapBindingConstants} class defines common constants, which are
@@ -33,17 +31,24 @@ import java.util.List;
 @NonNullByDefault
 public class LinkTapBindingConstants {
 
-    final static Type deviceStatusClassListType = new TypeToken<List<WaterMeterStatus.DeviceStatus>>() {}.getType();
+    final static Type deviceStatusClassListType = new TypeToken<List<WaterMeterStatus.DeviceStatus>>() {
+    }.getType();
 
     public static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(deviceStatusClassListType, new WaterMeterStatus.DeviceStatusClassTypeAdapter())
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).disableHtmlEscaping().create();
+            .excludeFieldsWithoutExposeAnnotation().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .disableHtmlEscaping().create();
 
     private static final String BINDING_ID = "linktap";
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public static final ThingTypeUID THING_TYPE_BRIDGE = new ThingTypeUID(BINDING_ID, "LinkTapBridge");
 
     // List of all Channel ids
     public static final String CHANNEL_1 = "channel1";
+
+    public static final String BRIDGE_PROP_GW_ID = "Gateway Id";
+    public static final String BRIDGE_PROP_GW_VER = "Version";
+    public static final String BRIDGE_PROP_VOL_UNIT = "Volume Unit";
 }

@@ -18,12 +18,23 @@ import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jetty.client.HttpClient;
+import org.openhab.binding.linktap.handlers.LinkTapBridgeHandler;
+import org.openhab.binding.linktap.protocol.servers.BindingServlet;
+import org.openhab.binding.linktap.protocol.servers.IHttpClientProvider;
+import org.openhab.core.io.net.http.HttpClientFactory;
+import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingTypeUID;
 import org.openhab.core.thing.binding.BaseThingHandlerFactory;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.thing.binding.ThingHandlerFactory;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.http.HttpService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link LinkTapHandlerFactory} is responsible for creating things and thing
@@ -33,9 +44,20 @@ import org.osgi.service.component.annotations.Component;
  */
 @NonNullByDefault
 @Component(configurationPid = "binding.linktap", service = ThingHandlerFactory.class)
-public class LinkTapHandlerFactory extends BaseThingHandlerFactory {
+public class LinkTapHandlerFactory extends BaseThingHandlerFactory implements IHttpClientProvider {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_SAMPLE);
+    private final Logger logger = LoggerFactory.getLogger(LinkTapHandlerFactory.class);
+
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_SAMPLE, THING_TYPE_BRIDGE);
+
+    private final HttpService httpService;
+    private final BindingServlet bindingServlet;
+
+    @Activate
+    public LinkTapHandlerFactory(@Reference HttpService httpService) {
+        this.httpService = httpService;
+        this.bindingServlet = new BindingServlet(httpService, logger);
+    }
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -48,8 +70,22 @@ public class LinkTapHandlerFactory extends BaseThingHandlerFactory {
 
         if (THING_TYPE_SAMPLE.equals(thingTypeUID)) {
             return new LinkTapHandler(thing);
+        } else if (THING_TYPE_BRIDGE.equals(thingTypeUID)) {
+            return new LinkTapBridgeHandler((Bridge) thing, this);
         }
 
         return null;
+    }
+
+    private @Nullable HttpClient httpClientRef = null;
+
+    @Override
+    public @Nullable HttpClient getHttpClient() {
+        return httpClientRef;
+    }
+
+    @Reference
+    protected void setHttpClientFactory(HttpClientFactory httpClientFactory) {
+        httpClientRef = httpClientFactory.getCommonHttpClient();
     }
 }

@@ -4,13 +4,39 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
+	<bridge-type id="LinkTapBridge">
+		<label>LinkTap Bridge</label>
+		<description>The LinkTap bridge represents a LinkTap gateway device</description>
+
+		<config-description>
+			<parameter name="hostname" type="text">
+				<context>email</context>
+				<required>true</required>
+				<label>Hostname / IP</label>
+				<description>The hostname / IP address of the device</description>
+			</parameter>
+			<parameter name="username" type="text">
+				<required>false</required>
+				<label>Device Username</label>
+				<description>The username if set for the gateway device</description>
+			</parameter>
+			<parameter name="password" type="text">
+				<context>password</context>
+				<required>false</required>
+				<label>Device Password</label>
+				<description>The password if set for the gateway device</description>
+			</parameter>
+		</config-description>
+
+	</bridge-type>
+
+
 	<!-- Sample Thing Type -->
 	<thing-type id="sample">
-		<!-- Comment this in for Things which need a Bridge to function.
-			<supported-bridge-type-refs>
-			<bridge-type-ref id="LinkTapBridge" />
-			</supported-bridge-type-refs>
-		-->
+
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="LinkTapBridge"/>
+		</supported-bridge-type-refs>
 
 		<label>LinkTap Binding Thing</label>
 		<description>Sample thing for LinkTap Binding</description>

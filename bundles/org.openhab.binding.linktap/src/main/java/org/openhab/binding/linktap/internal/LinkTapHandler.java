@@ -14,12 +14,20 @@ package org.openhab.binding.linktap.internal;
 
 import static org.openhab.binding.linktap.internal.LinkTapBindingConstants.*;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.linktap.handlers.*;
+import org.openhab.binding.linktap.protocol.frames.TLGatewayFrame;
+import org.openhab.binding.linktap.protocol.frames.TimeDataResp;
+import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.BridgeHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
@@ -36,7 +44,7 @@ public class LinkTapHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(LinkTapHandler.class);
 
-    private @Nullable LinkTapConfiguration config;
+    // private @Nullable LinkTapConfiguration config;
 
     public LinkTapHandler(Thing thing) {
         super(thing);
@@ -60,8 +68,8 @@ public class LinkTapHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
-        config = getConfigAs(LinkTapConfiguration.class);
-
+        // config = getConfigAs(LinkTapConfiguration.class);
+        logger.warn("RUNNING initalize! for device");
         // TODO: Initialize the handler.
         // The framework requires you to return from this method quickly, i.e. any network access must be done in
         // the background initialization below.
@@ -87,6 +95,33 @@ public class LinkTapHandler extends BaseThingHandler {
             }
         });
 
+        Bridge brge = this.getBridge();
+        if (scheduledTest != null) {
+            scheduledTest.cancel(false);
+            scheduledTest = null;
+        }
+        if (brge != null) {
+            scheduledTest = scheduler.scheduleWithFixedDelay(() -> {
+                logger.warn("Running Test Sequence");
+
+                BridgeHandler brgeHandler = brge.getHandler();
+                if (brgeHandler instanceof LinkTapBridgeHandler ltBridge) {
+                    ltBridge.runTest();
+                    TLGatewayFrame requestTime = new TLGatewayFrame();
+                    requestTime.command = 14;
+                    requestTime.gatewayId = "B17EC52F004B1200";
+                    String result = ltBridge.SendRequest(requestTime);
+                    TimeDataResp response = GSON.fromJson(result, TimeDataResp.class);
+                    logger.warn("Got DATE TIME response = {}", response);
+                } else {
+                    logger.warn("Bridge is not of correct instance type!");
+                }
+                logger.warn("Completed Test Sequence");
+
+            }, 10000, 10000, TimeUnit.MILLISECONDS);
+        } else {
+            logger.warn("Bridge is null not scheduling background check");
+        }
         // These logging types should be primarily used by bindings
         // logger.trace("Example trace message");
         // logger.debug("Example debug message");
@@ -100,5 +135,24 @@ public class LinkTapHandler extends BaseThingHandler {
         // Add a description to give user information to understand why thing does not work as expected. E.g.
         // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
         // "Can not access device as username and/or password are invalid");
+    }
+
+    @Nullable
+    private volatile ScheduledFuture scheduledTest = null;
+
+    public String SendRequest(final TLGatewayFrame frame) {
+        // Validate the payload is within the expected limits for the device its being sent to
+        if (!frame.isValid()) {
+            throw new RuntimeException("Payload validation failed - will not send");
+        }
+        Bridge parentBridge = getBridge();
+        if (parentBridge == null) {
+            throw new RuntimeException("Cannot send device does not have a valid bridge");
+        }
+        LinkTapBridgeHandler parentBridgeHandler = (LinkTapBridgeHandler) parentBridge.getHandler();
+        if (parentBridgeHandler == null) {
+            throw new RuntimeException("Cannot send device does not have a valid bridge handler");
+        }
+        return parentBridgeHandler.SendRequest(frame);
     }
 }
