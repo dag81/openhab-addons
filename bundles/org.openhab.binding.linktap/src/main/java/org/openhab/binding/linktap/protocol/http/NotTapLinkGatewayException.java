@@ -44,4 +44,5 @@ public class NotTapLinkGatewayException extends Exception {
     public final static String MISSING_API_TITLE = "Not a LinkTap API response";
     public final static String MISSING_SERVER_TITLE = "Not a LinkTap response";
     public final static String UNEXPECTED_STATUS_CODE = "Unexpected status code response";
+    public final static String UNEXPECTED_HTTPS = "Unexpected protocol";
 }

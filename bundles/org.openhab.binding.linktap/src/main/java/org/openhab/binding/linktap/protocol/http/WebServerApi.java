@@ -14,10 +14,9 @@ package org.openhab.binding.linktap.protocol.http;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.openhab.binding.linktap.protocol.http.NotTapLinkGatewayException.*;
+import static org.openhab.binding.linktap.protocol.http.TransientCommunicationIssueException.*;
 
 import java.net.*;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -33,7 +32,6 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.FormContentProvider;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpFields;
-import org.jsoup.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -162,16 +160,15 @@ public final class WebServerApi {
                     throw new NotTapLinkGatewayException(MISSING_SERVER_TITLE);
             }
         } catch (InterruptedException | TimeoutException e) {
-            logger.warn("InterruptedException / TimeoutException -> {}", e.getMessage());
-            throw new TransientCommunicationIssueException("Comm timeout or interrupted");
+            throw new TransientCommunicationIssueException(HOST_COMM_TIMEOUT);
         } catch (ExecutionException e) {
             final Throwable t = e.getCause();
             if (t instanceof UnknownHostException) {
-                throw new TransientCommunicationIssueException("Could not resolve host");
+                throw new TransientCommunicationIssueException(HOST_NOT_RESOLVED);
             } else if (t instanceof SocketTimeoutException) {
-                throw new TransientCommunicationIssueException("Could not reach host");
+                throw new TransientCommunicationIssueException(HOST_UNREACHABLE);
             } else if (t instanceof SSLHandshakeException) {
-                logger.warn("Device doesn't support SSL this is not the gateway device -> {}", e.getMessage());
+                throw new NotTapLinkGatewayException(UNEXPECTED_HTTPS);
             } else {
                 logger.warn("ExecutionException -> {}", e.getMessage());
             }
@@ -192,37 +189,21 @@ public final class WebServerApi {
                 throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
-            findLocalAddressRoutableToDevice();
             return isWebServerUnlocked(hostname);
         } catch (InterruptedException | TimeoutException e) {
-            logger.warn("InterruptedException / TimeoutException -> {}", e.getMessage());
-            throw new TransientCommunicationIssueException("Comm timeout or interrupted");
+            throw new TransientCommunicationIssueException(HOST_COMM_TIMEOUT);
         } catch (ExecutionException e) {
             final Throwable t = e.getCause();
             if (t instanceof UnknownHostException) {
-                throw new TransientCommunicationIssueException("Could not resolve host");
+                throw new TransientCommunicationIssueException(HOST_NOT_RESOLVED);
             } else if (t instanceof SocketTimeoutException) {
-                throw new TransientCommunicationIssueException("Could not reach host");
+                throw new TransientCommunicationIssueException(HOST_UNREACHABLE);
             } else if (t instanceof SSLHandshakeException) {
-                logger.warn("Device doesn't support SSL this is not the gateway device -> {}", e.getMessage());
+                throw new NotTapLinkGatewayException(UNEXPECTED_HTTPS);
             } else {
                 logger.warn("ExecutionException -> {}", e.getMessage());
             }
             throw new NotTapLinkGatewayException("Unexpected failure -> " + e.getMessage());
-        }
-    }
-
-    public void findLocalAddressRoutableToDevice() {
-        Enumeration<NetworkInterface> nets = null;
-        try {
-            nets = NetworkInterface.getNetworkInterfaces();
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
-
-        for (NetworkInterface nif : Collections.list(nets)) {
-            // do something with the network interface
-            logger.warn("Found address : {}", nif.getInetAddresses());
         }
     }
 
@@ -258,16 +239,15 @@ public final class WebServerApi {
             responseData = doc.body().text();
             return responseData;
         } catch (InterruptedException | TimeoutException e) {
-            logger.warn("InterruptedException / TimeoutException -> {}", e.getMessage());
-            throw new TransientCommunicationIssueException("Comm timeout or interrupted");
+            throw new TransientCommunicationIssueException(HOST_COMM_TIMEOUT);
         } catch (ExecutionException e) {
             final Throwable t = e.getCause();
             if (t instanceof UnknownHostException) {
-                throw new TransientCommunicationIssueException("Could not resolve host");
+                throw new TransientCommunicationIssueException(HOST_NOT_RESOLVED);
             } else if (t instanceof SocketTimeoutException) {
-                throw new TransientCommunicationIssueException("Could not reach host");
+                throw new TransientCommunicationIssueException(HOST_UNREACHABLE);
             } else if (t instanceof SSLHandshakeException) {
-                logger.warn("Device doesn't support SSL this is not the gateway device -> {}", e.getMessage());
+                throw new NotTapLinkGatewayException(UNEXPECTED_HTTPS);
             } else {
                 logger.warn("ExecutionException -> {}", e.getMessage());
             }

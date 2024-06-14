@@ -39,4 +39,8 @@ public class TransientCommunicationIssueException extends Exception {
     public TransientCommunicationIssueException(final String message, final Throwable cause) {
         super(message, cause);
     }
+
+    public final static String HOST_UNREACHABLE = "Could not connect";
+    public final static String HOST_NOT_RESOLVED = "Could not resolve IP address";
+    public final static String HOST_COMM_TIMEOUT = "Communications Lost";
 }
