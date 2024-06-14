@@ -12,6 +12,9 @@
  */
 package org.openhab.binding.linktap.protocol.http;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.openhab.binding.linktap.protocol.http.NotTapLinkGatewayException.*;
+
 import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -30,6 +33,9 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.FormContentProvider;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpFields;
+import org.jsoup.*;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,18 +53,12 @@ public final class WebServerApi {
 
     final int REQ_TIMEOUT_SECONDS = 3;
 
-    private static WebServerApi INSTANCE = new WebServerApi();
-    private static final Object InstanceLock = new Object();
+    private static final WebServerApi INSTANCE = new WebServerApi();
 
     private WebServerApi() {
     }
 
     public static WebServerApi getInstance() {
-        synchronized (InstanceLock) {
-            if (INSTANCE == null) {
-                INSTANCE = new WebServerApi();
-            }
-        }
         return INSTANCE;
     }
 
@@ -74,21 +74,92 @@ public final class WebServerApi {
     public boolean isWebServerUnlocked(final String hostname)
             throws NotTapLinkGatewayException, TransientCommunicationIssueException {
         try {
-            final Request request = httpClient.newRequest("http://" + hostname).method(HttpMethod.GET);
+            final Request request = httpClient.newRequest(URI_HOST_PREFIX + hostname).method(HttpMethod.GET);
             final ContentResponse cr = request.timeout(REQ_TIMEOUT_SECONDS, TimeUnit.SECONDS).send();
             if (HttpURLConnection.HTTP_OK != cr.getStatus()) {
-                throw new NotTapLinkGatewayException("Unexpected status code received " + cr.getStatus());
+                throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
             String responseData = cr.getContentAsString();
-            String docTitle = extractTitle(responseData);
-            switch (docTitle) {
-                case "LinkTap Gateway":
+            Document doc = Jsoup.parse(responseData);
+
+            logger.warn("IP Address {}", doc.getElementsByAttributeValue("name", "ip").attr("value"));
+            logger.warn("Network Mask {}", doc.getElementsByAttributeValue("name", "msk").attr("value"));
+            logger.warn("Gateway {}", doc.getElementsByAttributeValue("name", "gw").attr("value"));
+            logger.warn("DNS Server 1 {}", doc.getElementsByAttributeValue("name", "dns1").attr("value"));
+            logger.warn("DNS Server 2 {}", doc.getElementsByAttributeValue("name", "dns2").attr("value"));
+            logger.warn("HTTP Server URL {}", doc.getElementsByAttributeValue("name", "URL").attr("value"));
+
+            org.jsoup.select.Elements funcMatches = doc.getElementsByAttributeValue("name", "func");
+            String mqttMode = "Unknown";
+            for (int i = 0; i < funcMatches.size(); ++i) {
+                if (funcMatches.get(i).hasAttr("checked")) {
+                    switch (funcMatches.get(i).attr("value")) {
+                        case "0":
+                            mqttMode = "Disabled";
+                            break;
+                        case "1":
+                            mqttMode = "Client Only";
+                            break;
+                        case "2":
+                            mqttMode = "Client";
+                            break;
+                    }
+                }
+            }
+            logger.warn("MQTT Mode {}", mqttMode);
+
+            String firmwareVer = "Unknown";
+            String hwModel = "Unknown";
+            String id = "Unknown";
+            String mqttConnStatus = "Unknown";
+            String macAddr = "Unknown";
+            boolean dhcpUsed = doc.getElementsByAttributeValue("name", "dhcp").hasAttr("checked");
+            boolean httpApiEnabled = doc.getElementsByAttributeValue("name", "htapi").hasAttr("checked");
+            org.jsoup.select.Elements tdEntries = doc.getElementsByTag("td");
+            for (int i = 0; i < tdEntries.size(); ++i) {
+                if (tdEntries.get(i).hasText()) {
+                    switch (tdEntries.get(i).text()) {
+                        case "Firmware version":
+                            firmwareVer = tdEntries.get(i + 1).text();
+                            i++;
+                            break;
+                        case "Model":
+                            hwModel = tdEntries.get(i + 1).text();
+                            i++;
+                            break;
+                        case "ID":
+                            id = tdEntries.get(i + 1).text();
+                            i++;
+                            break;
+                        case "MQTT connection status":
+                            mqttConnStatus = tdEntries.get(i + 1).text();
+                            i++;
+                            break;
+                        case "MAC address":
+                            macAddr = tdEntries.get(i + 1).text();
+                            i++;
+                            break;
+
+                    }
+                }
+            }
+            logger.warn("HTTP API Enabled is {}", httpApiEnabled);
+            logger.warn("DHCP Enabled is {}", dhcpUsed);
+            logger.warn("MAC Address is {}", macAddr);
+            logger.warn("HW Model version is {}", hwModel);
+            logger.warn("Firmware version is {}", firmwareVer);
+            logger.warn("ID is {}", id);
+            logger.warn("MQTT Connection Status is {}", mqttConnStatus);
+            logger.warn("Title is {}", doc.title());
+
+            switch (doc.title()) {
+                case TITLE_API_CONFIG_PAGE:
                     return true;
-                case "LinkTap Gateway Login":
+                case TITLE_API_LOGIN_PAGE:
                     return false;
                 default:
-                    throw new NotTapLinkGatewayException("Unexpected title received: " + docTitle);
+                    throw new NotTapLinkGatewayException(MISSING_SERVER_TITLE);
             }
         } catch (InterruptedException | TimeoutException e) {
             logger.warn("InterruptedException / TimeoutException -> {}", e.getMessage());
@@ -112,13 +183,13 @@ public final class WebServerApi {
             throws NotTapLinkGatewayException, TransientCommunicationIssueException {
         try {
             org.eclipse.jetty.util.Fields fields = new org.eclipse.jetty.util.Fields();
-            fields.put("admin", username);
-            fields.put("adminpwd", password);
-            final Request request = httpClient.newRequest("http://" + hostname + "/login.shtml").method(HttpMethod.POST)
-                    .content(new FormContentProvider(fields));
+            fields.put(FIELD_ADMIN_USER, username);
+            fields.put(FIELD_ADMIN_USER_PWD, password);
+            final Request request = httpClient.newRequest(URI_HOST_PREFIX + hostname + "/login.shtml")
+                    .method(HttpMethod.POST).content(new FormContentProvider(fields));
             final ContentResponse cr = request.timeout(REQ_TIMEOUT_SECONDS, TimeUnit.SECONDS).send();
             if (HttpURLConnection.HTTP_OK != cr.getStatus()) {
-                throw new NotTapLinkGatewayException("Unexpected status code received " + cr.getStatus());
+                throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
             findLocalAddressRoutableToDevice();
@@ -163,57 +234,28 @@ public final class WebServerApi {
      * @throws NotTapLinkGatewayException if the response does not appear to be from a Link Tap Gateway
      */
     private void ValidateHeaders(final HttpFields headers) throws NotTapLinkGatewayException {
-        if (!headers.contains("Server", "LinkTap Gateway")) {
-            throw new NotTapLinkGatewayException("Missing header markers");
+        if (!headers.contains(HEADER_SERVER, HEADER_GW_SERVER_NAME)) {
+            throw new NotTapLinkGatewayException(HEADERS_MISSING);
         }
-    }
-
-    private String extractTitle(final String document) throws NotTapLinkGatewayException {
-        final int headStart = document.indexOf("<title>");
-        if (headStart == -1) {
-            throw new NotTapLinkGatewayException("Missing expected title");
-        }
-        final int headFinish = document.indexOf("</title>", headStart);
-        if (headFinish == -1) {
-            throw new NotTapLinkGatewayException("Missing expected title");
-        }
-        return document.substring(headStart + 7, headFinish); // 7 = "<title>"
-    }
-
-    private String extractBody(final String document) throws NotTapLinkGatewayException {
-        final int bodyStart = document.indexOf("<body>");
-        if (bodyStart == -1) {
-            throw new NotTapLinkGatewayException("Missing expected body");
-        }
-        final int bodyFinish = document.indexOf("</body>", bodyStart);
-        if (bodyFinish == -1) {
-            throw new NotTapLinkGatewayException("Missing expected body");
-        }
-        return document.substring(bodyStart + 7, bodyFinish); // 7 = "<title>"
-    }
-
-    private String extractRetMarker(String body) {
-        // <!--#RET-->{...}
-        final int index = body.indexOf("<!--#RET-->");
-        return (index != -1) ? body.substring(index + 11).trim() : body;
     }
 
     public String sendRequest(final String hostname, final String requestBody)
             throws NotTapLinkGatewayException, TransientCommunicationIssueException {
         try {
-            final Request request = httpClient.POST("http://" + hostname + "/api.shtml");
-            request.content(new StringContentProvider(requestBody), "application/json");
+            final Request request = httpClient.POST(URI_HOST_PREFIX + hostname + "/api.shtml");
+            request.content(new StringContentProvider(requestBody), APPLICATION_JSON_TYPE.toString());
 
             final ContentResponse cr = request.timeout(REQ_TIMEOUT_SECONDS, TimeUnit.SECONDS).send();
             if (HttpURLConnection.HTTP_OK != cr.getStatus()) {
-                throw new NotTapLinkGatewayException("Unexpected status code received " + cr.getStatus());
+                throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
             String responseData = cr.getContentAsString();
-            String docTitle = extractTitle(responseData);
-            if (!docTitle.equals("api"))
-                throw new NotTapLinkGatewayException("Not a LinkTap API response");
-            responseData = extractRetMarker(extractBody(responseData));
+            final Document doc = Jsoup.parse(responseData);
+            final String docTitle = doc.title();
+            if (!docTitle.equals(TITLE_API_RESPONSE))
+                throw new NotTapLinkGatewayException(MISSING_API_TITLE);
+            responseData = doc.body().text();
             return responseData;
         } catch (InterruptedException | TimeoutException e) {
             logger.warn("InterruptedException / TimeoutException -> {}", e.getMessage());
@@ -232,4 +274,26 @@ public final class WebServerApi {
             throw new NotTapLinkGatewayException("Unexpected failure -> " + e.getMessage());
         }
     }
+
+    public final static String URI_SCHEME = "http";
+    public final static String URI_HOST_PREFIX = URI_SCHEME + "://";
+
+    /**
+     * Headers
+     */
+    public final static String HEADER_SERVER = "Server";
+    public final static String HEADER_GW_SERVER_NAME = "LinkTap Gateway";
+
+    /**
+     * HTML title field mappings to use cases
+     */
+    private final static String TITLE_API_RESPONSE = "api";
+    private final static String TITLE_API_CONFIG_PAGE = "LinkTap Gateway";
+    private final static String TITLE_API_LOGIN_PAGE = "LinkTap Gateway Login";
+
+    /**
+     * Field names for form submission API's
+     */
+    private final static String FIELD_ADMIN_USER = "admin";
+    private final static String FIELD_ADMIN_USER_PWD = "adminpwd";
 }

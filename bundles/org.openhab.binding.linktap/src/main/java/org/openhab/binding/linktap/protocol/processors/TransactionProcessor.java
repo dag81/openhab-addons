@@ -18,6 +18,7 @@ import static org.openhab.binding.linktap.protocol.frames.TLGatewayFrame.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -75,18 +76,22 @@ public final class TransactionProcessor {
     }
 
     public String ProcessGwRequest(final String sourceHost, final int command, final String payload) {
+        final UUID uid = UUID.randomUUID();
+        logger.warn("{} = Received from GW {} -> Payload {}", uid, sourceHost, payload);
+
         TLGatewayFrame frame = GSON.fromJson(payload, TLGatewayFrame.class);
+        String response = "";
         switch (command) {
             case CMD_HANDSHAKE:
-                final LocalDateTime currentTime = LocalDateTime.now();
-                currentTime.minusDays(1);
+                LocalDateTime currentTime = LocalDateTime.now();
+                currentTime = currentTime.minusDays(1);
                 final HandshakeResp resp = new HandshakeResp();
                 resp.command = CMD_HANDSHAKE;
                 resp.gatewayId = frame.gatewayId;
                 resp.wday = currentTime.getDayOfWeek().getValue();
                 resp.date = currentTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 resp.time = currentTime.format(DateTimeFormatter.ofPattern("HHmmss"));
-                return GSON.toJson(resp);
+                response = GSON.toJson(resp);
             case CMD_RAINFALL_DATA:
             case CMD_NOTIFICATION_WATERING_SKIPPED:
             case CMD_DATETIME_SYNC:
@@ -95,17 +100,22 @@ public final class TransactionProcessor {
                 logger.warn("Unexpected response frame {} -> {}", command, payload);
                 return "";
         }
-        return "";
+
+        logger.warn("{} = Response to GW {} -> Payload {}", uid, sourceHost, response);
+        return response;
     }
 
     public String SendRequest(final LinkTapBridgeHandler handler, final TLGatewayFrame request) {
         // We need the hostname from the handler of the bridge
+        UUID uid = UUID.randomUUID();
         final String targetHost = handler.getHost();
-        logger.warn("Transmitting to GW {} -> Payload {}", targetHost, GSON.toJson(request));
+        final String payloadJson = GSON.toJson(request);
+        logger.warn("{} = Transmitting to GW {} -> Payload {}", uid, targetHost, payloadJson);
 
         // Responses can be one of the following types
         try {
             String response = api.sendRequest(targetHost, GSON.toJson(request));
+            logger.warn("{} = Received from GW {} -> Payload {}", uid, targetHost, response);
             TLGatewayFrame gatewayFrame = GSON.fromJson(response, TLGatewayFrame.class);
 
             if (request.command != gatewayFrame.command) {

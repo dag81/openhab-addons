@@ -15,6 +15,7 @@ package org.openhab.binding.linktap.protocol.frames;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -35,6 +36,10 @@ public class TLGatewayFrame implements IPayloadValidator {
     protected final static Pattern deviceIdPattern = Pattern.compile("[a-zA-Z0-9]{0,16}");
 
     public TLGatewayFrame() {
+    }
+
+    public @Nullable Class<TLGatewayFrame> getResponseFrame() {
+        return TLGatewayFrame.class;
     }
 
     /**

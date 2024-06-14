@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.binding.linktap.internal.LinkTapBindingConstants;
 import org.openhab.binding.linktap.protocol.frames.TLGatewayFrame;
 import org.openhab.binding.linktap.protocol.processors.TransactionProcessor;
@@ -154,9 +153,10 @@ public class BindingServlet extends HttpServlet {
             logger.warn("Got Command {}", tlFrame.command);
             TransactionProcessor tp = TransactionProcessor.getInstance();
             String result = tp.ProcessGwRequest(req.getRemoteAddr(), tlFrame.command, payload);
-            logger.warn("Would send back {}", result);
-            resp.setStatus(HttpStatus.OK_200);
-            resp.getWriter().write(result);
+            resp.setContentType("application/json");
+            resp.setContentLength(result.length());
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().print(result);
             resp.flushBuffer();
         }
     }

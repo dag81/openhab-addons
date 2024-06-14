@@ -152,14 +152,16 @@ public class GatewayDeviceResponse extends TLGatewayFrame {
         }
     }
 
-    public final static int RET_SUCCESS = 0;
-    public final static int RET_MESSAGE_FORMAT_ERR = 1;
-    public final static int RET_CMD_NOT_SUPPORTED = 2;
-    public final static int RET_GATEWAY_ID_NOT_MATCHED = 3;
-    public final static int RET_DEVICE_ID_ERROR = 4;
-    public final static int RET_DEVICE_NOT_FOUND = 5;
-    public final static int RET_GW_INTERNAL_ERR = 6;
-    public final static int RET_CONFLICT_WATER_PLAN = 7;
-    public final static int RET_GATEWAY_BUSY = 8;
-    public final static int RET_BAD_PARAMETER = 9;
+    /*
+     * public final static int RET_SUCCESS = 0;
+     * public final static int RET_MESSAGE_FORMAT_ERR = 1;
+     * public final static int RET_CMD_NOT_SUPPORTED = 2;
+     * public final static int RET_GATEWAY_ID_NOT_MATCHED = 3;
+     * public final static int RET_DEVICE_ID_ERROR = 4;
+     * public final static int RET_DEVICE_NOT_FOUND = 5;
+     * public final static int RET_GW_INTERNAL_ERR = 6;
+     * public final static int RET_CONFLICT_WATER_PLAN = 7;
+     * public final static int RET_GATEWAY_BUSY = 8;
+     * public final static int RET_BAD_PARAMETER = 9;
+     */
 }

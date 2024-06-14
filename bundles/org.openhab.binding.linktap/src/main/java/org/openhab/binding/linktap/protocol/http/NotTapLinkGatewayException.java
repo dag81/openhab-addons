@@ -39,4 +39,9 @@ public class NotTapLinkGatewayException extends Exception {
     public NotTapLinkGatewayException(final String message, final Throwable cause) {
         super(message, cause);
     }
+
+    public final static String HEADERS_MISSING = "Missing header markers";
+    public final static String MISSING_API_TITLE = "Not a LinkTap API response";
+    public final static String MISSING_SERVER_TITLE = "Not a LinkTap response";
+    public final static String UNEXPECTED_STATUS_CODE = "Unexpected status code response";
 }
