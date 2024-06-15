@@ -49,6 +49,17 @@ public class LinkTapBindingConstants {
     public static final String CHANNEL_1 = "channel1";
 
     public static final String BRIDGE_PROP_GW_ID = "Gateway Id";
+    public static final String BRIDGE_PROP_HW_MODEL = "Hardware Model";
     public static final String BRIDGE_PROP_GW_VER = "Version";
+    public static final String BRIDGE_PROP_MAC_ADDR = "MAC Address";
+    public static final String BRIDGE_HTTP_API_ENABLED = "HTTP API Enabled";
+    public static final String BRIDGE_HTTP_API_EP = "HTTP API Callback URI";
     public static final String BRIDGE_PROP_VOL_UNIT = "Volume Unit";
+
+    // Property name constants
+    public static final String DEVICE_PROP_DEVICE_NAME = "Device Name";
+    public static final String DEVICE_PROP_DEVICE_TYPE = "Device Type";
+    public static final String DEVICE_PROP_DEVICE_MAC_ID = "MAC Id";
+    public static final String DEVICE_PROP_DEVICE_FAMILY = "Device Family";
+    public static final String DEVICE_PROP_DEVICE_UUID = "UUID";
 }

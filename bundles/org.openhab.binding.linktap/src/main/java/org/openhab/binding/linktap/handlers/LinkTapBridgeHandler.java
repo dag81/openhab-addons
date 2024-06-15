@@ -111,13 +111,19 @@ public class LinkTapBridgeHandler extends BaseBridgeHandler {
         final WebServerApi api = WebServerApi.getInstance();
         api.setHttpClient(httpClientProvider.getHttpClient());
         try {
-            if (!api.isWebServerUnlocked(bridgeKey)) {
+            Map<String, String> bridgeProps;
+            bridgeProps = api.getBridgeProperities(bridgeKey);
+            if (!bridgeProps.isEmpty()) {
+                String protocolId = bridgeProps.get(BRIDGE_PROP_GW_ID).split("[-]")[0];
+                logger.warn("Protocol ID = {}", protocolId);
+                // Device id = <gw id>['_']<device_id>
+                this.updateProperties(bridgeProps);
+            } else {
                 if (!api.unlockWebInterface(bridgeKey, config.username, config.password)) {
                     updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                             "Check credentials provided");
                     return;
                 }
-
             }
             updateStatus(ThingStatus.ONLINE);
         } catch (NotTapLinkGatewayException e) {
@@ -148,8 +154,10 @@ public class LinkTapBridgeHandler extends BaseBridgeHandler {
         final WebServerApi api = WebServerApi.getInstance();
         api.setHttpClient(httpClientProvider.getHttpClient());
         try {
-            if (api.isWebServerUnlocked("10.90.3.2")) {
+            Map<String, String> bridgeProps = api.getBridgeProperities("10.90.3.2");
+            if (!bridgeProps.isEmpty()) {
                 logger.warn("10.90.3.2 is unlocked");
+                this.updateProperties(bridgeProps);
             } else {
                 logger.warn("10.90.3.2 is locked");
             }
@@ -160,7 +168,7 @@ public class LinkTapBridgeHandler extends BaseBridgeHandler {
         }
 
         try {
-            if (api.isWebServerUnlocked("10.2.2.1")) {
+            if (!api.getBridgeProperities("10.2.2.1").isEmpty()) {
                 logger.warn("10.2.2.1 is unlocked");
             } else {
                 logger.warn("10.2.2.1 is locked");
@@ -172,7 +180,7 @@ public class LinkTapBridgeHandler extends BaseBridgeHandler {
         }
 
         try {
-            if (api.isWebServerUnlocked("10.100.43.23")) {
+            if (!api.getBridgeProperities("10.100.43.23").isEmpty()) {
                 logger.warn("10.100.43.23 is unlocked");
             } else {
                 logger.warn("10.100.43.23 is locked");
@@ -184,7 +192,7 @@ public class LinkTapBridgeHandler extends BaseBridgeHandler {
         }
 
         try {
-            if (api.isWebServerUnlocked("www.davidgoodyear.com2")) {
+            if (!api.getBridgeProperities("www.davidgoodyear.com2").isEmpty()) {
                 logger.warn("www.davidgoodyear.com2 is unlocked");
             } else {
                 logger.warn("www.davidgoodyear.com2 is locked");

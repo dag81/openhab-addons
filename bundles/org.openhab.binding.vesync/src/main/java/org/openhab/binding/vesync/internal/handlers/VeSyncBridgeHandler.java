@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * @author David Goodyear - Initial Contribution
  */
 @NonNullByDefault
-public class VeSyncBridgeHandler extends BaseBridgeHandler implements VeSyncClient {
+public class aVeSyncBridgeHandler extends BaseBridgeHandler implements VeSyncClient {
 
     private static final int DEFAULT_DEVICE_SCAN_INTERVAL = 600;
     private static final int DEFAULT_DEVICE_SCAN_RECOVERY_INTERVAL = 60;

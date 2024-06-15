@@ -13,10 +13,13 @@
 package org.openhab.binding.linktap.protocol.http;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.openhab.binding.linktap.internal.LinkTapBindingConstants.*;
 import static org.openhab.binding.linktap.protocol.http.NotTapLinkGatewayException.*;
 import static org.openhab.binding.linktap.protocol.http.TransientCommunicationIssueException.*;
 
 import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -69,7 +72,7 @@ public final class WebServerApi {
         this.httpClient = httpClient;
     }
 
-    public boolean isWebServerUnlocked(final String hostname)
+    public Map<String, String> getBridgeProperities(final String hostname)
             throws NotTapLinkGatewayException, TransientCommunicationIssueException {
         try {
             final Request request = httpClient.newRequest(URI_HOST_PREFIX + hostname).method(HttpMethod.GET);
@@ -78,87 +81,20 @@ public final class WebServerApi {
                 throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
-            String responseData = cr.getContentAsString();
-            Document doc = Jsoup.parse(responseData);
-
-            logger.warn("IP Address {}", doc.getElementsByAttributeValue("name", "ip").attr("value"));
-            logger.warn("Network Mask {}", doc.getElementsByAttributeValue("name", "msk").attr("value"));
-            logger.warn("Gateway {}", doc.getElementsByAttributeValue("name", "gw").attr("value"));
-            logger.warn("DNS Server 1 {}", doc.getElementsByAttributeValue("name", "dns1").attr("value"));
-            logger.warn("DNS Server 2 {}", doc.getElementsByAttributeValue("name", "dns2").attr("value"));
-            logger.warn("HTTP Server URL {}", doc.getElementsByAttributeValue("name", "URL").attr("value"));
-
-            org.jsoup.select.Elements funcMatches = doc.getElementsByAttributeValue("name", "func");
-            String mqttMode = "Unknown";
-            for (int i = 0; i < funcMatches.size(); ++i) {
-                if (funcMatches.get(i).hasAttr("checked")) {
-                    switch (funcMatches.get(i).attr("value")) {
-                        case "0":
-                            mqttMode = "Disabled";
-                            break;
-                        case "1":
-                            mqttMode = "Client Only";
-                            break;
-                        case "2":
-                            mqttMode = "Client";
-                            break;
-                    }
-                }
-            }
-            logger.warn("MQTT Mode {}", mqttMode);
-
-            String firmwareVer = "Unknown";
-            String hwModel = "Unknown";
-            String id = "Unknown";
-            String mqttConnStatus = "Unknown";
-            String macAddr = "Unknown";
-            boolean dhcpUsed = doc.getElementsByAttributeValue("name", "dhcp").hasAttr("checked");
-            boolean httpApiEnabled = doc.getElementsByAttributeValue("name", "htapi").hasAttr("checked");
-            org.jsoup.select.Elements tdEntries = doc.getElementsByTag("td");
-            for (int i = 0; i < tdEntries.size(); ++i) {
-                if (tdEntries.get(i).hasText()) {
-                    switch (tdEntries.get(i).text()) {
-                        case "Firmware version":
-                            firmwareVer = tdEntries.get(i + 1).text();
-                            i++;
-                            break;
-                        case "Model":
-                            hwModel = tdEntries.get(i + 1).text();
-                            i++;
-                            break;
-                        case "ID":
-                            id = tdEntries.get(i + 1).text();
-                            i++;
-                            break;
-                        case "MQTT connection status":
-                            mqttConnStatus = tdEntries.get(i + 1).text();
-                            i++;
-                            break;
-                        case "MAC address":
-                            macAddr = tdEntries.get(i + 1).text();
-                            i++;
-                            break;
-
-                    }
-                }
-            }
-            logger.warn("HTTP API Enabled is {}", httpApiEnabled);
-            logger.warn("DHCP Enabled is {}", dhcpUsed);
-            logger.warn("MAC Address is {}", macAddr);
-            logger.warn("HW Model version is {}", hwModel);
-            logger.warn("Firmware version is {}", firmwareVer);
-            logger.warn("ID is {}", id);
-            logger.warn("MQTT Connection Status is {}", mqttConnStatus);
-            logger.warn("Title is {}", doc.title());
+            final String responseData = cr.getContentAsString();
+            final Document doc = Jsoup.parse(responseData);
 
             switch (doc.title()) {
                 case TITLE_API_CONFIG_PAGE:
-                    return true;
+                    break;
                 case TITLE_API_LOGIN_PAGE:
-                    return false;
+                    return Map.of();
                 default:
                     throw new NotTapLinkGatewayException(MISSING_SERVER_TITLE);
             }
+
+            return getMetadataProperties(doc);
+
         } catch (InterruptedException | TimeoutException e) {
             throw new TransientCommunicationIssueException(HOST_COMM_TIMEOUT);
         } catch (ExecutionException e) {
@@ -176,6 +112,66 @@ public final class WebServerApi {
         }
     }
 
+    /**
+     * Extract the common properties for all devices, from the given meta-data of a device.
+     *
+     * @param doc - the html document returns from the potential Gateway device
+     * @return - Map of common props
+     */
+    private Map<String, String> getMetadataProperties(final Document doc) {
+
+        final Map<String, String> newProps = new HashMap<>(4);
+
+        /*
+         * Extract elements based on td location using the text markers
+         */
+        String firmwareVer = "?";
+        String hwModel = "?";
+        String id = "?";
+        String macAddr = "?";
+
+        final org.jsoup.select.Elements tdEntries = doc.getElementsByTag("td");
+        for (int i = 0; i < tdEntries.size(); ++i) {
+            if (tdEntries.get(i).hasText()) {
+                switch (tdEntries.get(i).text()) {
+                    case "Firmware version":
+                        firmwareVer = tdEntries.get(i + 1).text();
+                        i++;
+                        break;
+                    case "Model":
+                        hwModel = tdEntries.get(i + 1).text();
+                        i++;
+                        break;
+                    case "ID":
+                        id = tdEntries.get(i + 1).text();
+                        i++;
+                        break;
+                    case "MAC address":
+                        macAddr = tdEntries.get(i + 1).text();
+                        i++;
+                        break;
+
+                }
+            }
+        }
+
+        newProps.put(BRIDGE_PROP_GW_ID, id);
+        newProps.put(BRIDGE_PROP_GW_VER, firmwareVer);
+        newProps.put(BRIDGE_PROP_MAC_ADDR, macAddr);
+        newProps.put(BRIDGE_PROP_HW_MODEL, hwModel);
+
+        /*
+         * Extract elements based on name markers and attributes
+         */
+        final boolean httpApiEnabled = doc.getElementsByAttributeValue("name", "htapi").hasAttr("checked");
+        final String httpApiEndpoint = doc.getElementsByAttributeValue("name", "URL").attr("value");
+
+        newProps.put(BRIDGE_HTTP_API_ENABLED, String.valueOf(httpApiEnabled));
+        newProps.put(BRIDGE_HTTP_API_EP, httpApiEndpoint);
+
+        return newProps;
+    }
+
     public boolean unlockWebInterface(final String hostname, final String username, final String password)
             throws NotTapLinkGatewayException, TransientCommunicationIssueException {
         try {
@@ -189,7 +185,7 @@ public final class WebServerApi {
                 throw new NotTapLinkGatewayException(UNEXPECTED_STATUS_CODE);
             }
             ValidateHeaders(cr.getHeaders());
-            return isWebServerUnlocked(hostname);
+            return !getBridgeProperities(hostname).isEmpty();
         } catch (InterruptedException | TimeoutException e) {
             throw new TransientCommunicationIssueException(HOST_COMM_TIMEOUT);
         } catch (ExecutionException e) {

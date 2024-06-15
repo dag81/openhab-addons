@@ -8,6 +8,15 @@
 		<label>LinkTap Bridge</label>
 		<description>The LinkTap bridge represents a LinkTap gateway device</description>
 
+		<properties>
+			<property name="Gateway Id"/>
+			<property name="Hardware Model"/>
+			<property name="Version"/>
+			<property name="MAC Address"/>
+			<property name="HTTP API Enabled"/>
+			<property name="HTTP API Callback URI"/>
+		</properties>
+
 		<config-description>
 			<parameter name="hostname" type="text">
 				<context>email</context>
