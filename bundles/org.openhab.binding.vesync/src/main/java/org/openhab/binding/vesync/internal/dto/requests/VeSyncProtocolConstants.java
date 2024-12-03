@@ -34,6 +34,9 @@ public interface VeSyncProtocolConstants {
     String DEVICE_SET_SWITCH = "setSwitch";
     String DEVICE_SET_DISPLAY = "setDisplay";
     String DEVICE_SET_LEVEL = "setLevel";
+    // Outlet Commands
+    String DEVICE_GET_OUTLET_STATUS = "getOutletStatus";
+    String DEVICE_GET_ENEGERGY_HISTORY = "getEnergyHistory";
 
     // Humidifier Commands
     String DEVICE_SET_AUTOMATIC_STOP = "setAutomaticStop";
