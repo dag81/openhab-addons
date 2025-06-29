@@ -87,8 +87,10 @@ public class ElectroluxApplianceHandlerFactory extends BaseThingHandlerFactory {
                     String.class.getClassLoader());
             return new ElectroluxPortableAirConditionerHandler(thing, translationProvider, localeProvider, storage);
         } else if (THING_TYPE_BRIDGE.equals(thingTypeUID)) {
+            final Storage<String> storage = storageService.getStorage(thing.getUID().toString(),
+                    String.class.getClassLoader());
             return new ElectroluxApplianceBridgeHandler((Bridge) thing, httpClient, gson, translationProvider,
-                    localeProvider);
+                    localeProvider, storage);
         }
         return null;
     }
