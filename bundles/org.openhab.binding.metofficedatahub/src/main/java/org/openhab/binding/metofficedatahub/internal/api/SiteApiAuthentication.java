@@ -22,6 +22,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -35,6 +37,8 @@ public class SiteApiAuthentication {
 
     private final Object isAuthenticatedWriteLock = new Object();
 
+    private final Logger logger = LoggerFactory.getLogger(SiteApiAuthentication.class);
+
     private Boolean isAuthenticated = false;
     private String apiKey = "";
 
@@ -44,32 +48,50 @@ public class SiteApiAuthentication {
     public void dispose() {
     }
 
-    public void setApiKey(final String newApiKey) throws AuthTokenException {
+    public void setApiKey(final String newApiKey, final boolean validate) throws AuthTokenException {
         this.apiKey = "";
+
+        logger.trace("Applying validation is set to {}", validate);
 
         // Perform some basic token checks, as data that isn't even JWT formatted will give a
         // 500 response from the Met Office servers rather than a 401 response.
-        final String[] chunks = newApiKey.split("\\.");
-        if (chunks.length != 3) {
-            throw new AuthTokenException();
-        }
-        final Base64.Decoder decoder = Base64.getUrlDecoder();
         try {
-            final JwtTokenHeader headers = GSON.fromJson(new String(decoder.decode(chunks[0]), StandardCharsets.UTF_8),
-                    JwtTokenHeader.class);
-            if (headers == null || !headers.isValid()) {
+            final String[] chunks = newApiKey.split("\\.");
+            if (chunks.length != 3) {
+                logger.trace("JWT is incomplete");
                 throw new AuthTokenException();
             }
+            final Base64.Decoder decoder = Base64.getUrlDecoder();
+            try {
+                final JwtTokenHeader headers = GSON
+                        .fromJson(new String(decoder.decode(chunks[0]), StandardCharsets.UTF_8), JwtTokenHeader.class);
+                if (headers == null || !headers.isValid()) {
+                    logger.trace("JWT Headers failed validation");
+                    throw new AuthTokenException();
+                }
 
-            final JwtTokenPayload payload = GSON.fromJson(new String(decoder.decode(chunks[1]), StandardCharsets.UTF_8),
-                    JwtTokenPayload.class);
-            if (payload == null || !payload.isValid()) {
+                final JwtTokenPayload payload = GSON
+                        .fromJson(new String(decoder.decode(chunks[1]), StandardCharsets.UTF_8), JwtTokenPayload.class);
+                if (payload == null || !payload.isValid()) {
+                    logger.trace("JWT Payload failed validation");
+                    throw new AuthTokenException();
+                }
+
+                decoder.decode(chunks[2]); // check base64 encoding of signature
+            } catch (JsonSyntaxException | IllegalArgumentException e) {
+                logger.trace("JWT Failed validation due to {}", e.getMessage());
                 throw new AuthTokenException();
             }
-
-            decoder.decode(chunks[2]); // check base64 encoding of signature
-        } catch (JsonSyntaxException | IllegalArgumentException e) {
-            throw new AuthTokenException();
+        } catch (AuthTokenException ate) {
+            if (validate) {
+                logger.warn("API TOKEN FAILED VALIDATION");
+                throw ate;
+            }
+        }
+        if (validate) {
+            logger.trace("Validated API JWT token successfully");
+        } else {
+            logger.warn("Validation API JWT failed - API token validation is disabled - ignoring");
         }
         this.apiKey = newApiKey;
     }
